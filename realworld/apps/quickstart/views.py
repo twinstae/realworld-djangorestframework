@@ -1,13 +1,10 @@
 from django.contrib.auth.models import User, Group
-from django.http import HttpResponse, Http404
-from rest_framework import mixins, generics
+from rest_framework import generics
 from rest_framework import viewsets
-from rest_framework.parsers import JSONParser
-from rest_framework.response import Response
-from rest_framework.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_204_NO_CONTENT
-from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from realworld.apps.quickstart.models import Snippet
+from realworld.apps.quickstart.permissions import IsOwnerOrReadOnly
 from realworld.apps.quickstart.serializers import UserSerializer, GroupSerializer, SnippetSerializer
 
 
@@ -26,6 +23,10 @@ class SnippetList(
 ):
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
 
 class SnippetDetail(
@@ -36,3 +37,14 @@ class SnippetDetail(
     """
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+
+
+class UserList(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+class UserDetail(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer

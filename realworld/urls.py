@@ -8,6 +8,9 @@ router.register(r'groups', views.GroupViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('snippets/', include('realworld.apps.quickstart.urls')),
+    path('', include('realworld.apps.quickstart.urls')),
+]
+
+urlpatterns += [
+    path('api-auth/', include('rest_framework.urls')),
 ]

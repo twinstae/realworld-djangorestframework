@@ -1,4 +1,6 @@
 from django.contrib.auth.models import User, Group
+from rest_framework.fields import ReadOnlyField
+from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.serializers import Serializer, HyperlinkedModelSerializer, IntegerField, CharField, BooleanField
 from rest_framework.serializers import ChoiceField
 
@@ -6,9 +8,11 @@ from realworld.apps.quickstart.models import LANGUAGE_CHOICES, STYLE_CHOICES, Sn
 
 
 class UserSerializer(HyperlinkedModelSerializer):
+    snippets = PrimaryKeyRelatedField(many=True, queryset=Snippet.objects.all())
+
     class Meta:
         model = User
-        fields = ['url', 'username', 'email', 'groups']
+        fields = ['id', 'username', 'snippets']
 
 
 class GroupSerializer(HyperlinkedModelSerializer):
@@ -30,6 +34,7 @@ class SnippetSerializer(Serializer):
         choices=LANGUAGE_CHOICES, default='python')
     style = ChoiceField(
         choices=STYLE_CHOICES, default='friendly')
+    owner = ReadOnlyField(source='owner.username')
 
     def create(self, validated_data):
         return Snippet.objects.create(**validated_data)
