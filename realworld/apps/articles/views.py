@@ -4,6 +4,7 @@ from rest_framework.response import Response
 
 from realworld.apps.articles.models import Article
 from realworld.apps.articles.serializers import ArticleSerializer
+from realworld.apps.profiles.models import Profile
 
 
 class ArticleJSONRenderer(object):
@@ -31,7 +32,7 @@ class ArticleViewSet(
 
     def create(self, request,  *args, **kwargs):
         serializer_context = {
-            'author': request.user.profile,
+            'author': Profile.objects.all()[0],
             'request': request
         }
 

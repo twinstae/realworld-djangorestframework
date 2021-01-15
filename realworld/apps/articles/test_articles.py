@@ -34,13 +34,15 @@ class ArticleTest(APITestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = User(
+        cls.user = User.objects.create_user(
             username="stelo",
             email="rabolution@gmail.com"
         )
         cls.user.save()
-        cls.profile = Profile(user=cls.user)
-        cls.profile.save()
+        Profile.objects.create(
+            user=cls.user
+        )
+        cls.profile = Profile.objects.all()[0]
 
         cls.article_1 = Article(
             author=cls.profile,
@@ -61,7 +63,7 @@ class ArticleTest(APITestCase):
     def test_create_article(self):
         self.client.force_login(user=self.user)
         response = self.client.post(
-            'api/articles',
+            'api/articles/',
             {
                 "article": {
                     "title": "제목",
@@ -79,7 +81,7 @@ class ArticleTest(APITestCase):
 
     def test_create_article_without_login(self):
         response = self.client.post(
-            'api/articles',
+            'api/articles/',
             {
                 "article": {
                     "title": "제목",
