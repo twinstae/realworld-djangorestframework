@@ -3,7 +3,7 @@ import json
 from rest_framework.renderers import JSONRenderer
 
 
-class ConduitJSONRenderer(JSONRenderer):
+class RealworldJSONRenderer(JSONRenderer):
     charset = 'utf-8'
     object_label = 'object'
     pagination_object_label = 'objects'
@@ -16,7 +16,7 @@ class ConduitJSONRenderer(JSONRenderer):
                 self.pagination_count_label: data['count']
             })
         elif data.get('errors', None) is not None:
-            return super(ConduitJSONRenderer, self).render(data)
+            return super(RealworldJSONRenderer, self).render(data)
 
         else:
             return json.dumps({self.object_label: data})
