@@ -76,11 +76,8 @@ class QuickTest(APITestCase):
 
     def test_get_snippet_list(self):
         response = self.client.get('/snippets/')
-        check_status_content(
-            response,
-            status.HTTP_200_OK,
-            expected
-        )
+        assert response.status_code == status.HTTP_200_OK
+        assert parse_body(response)['results'] == expected
 
     def test_create_snippet(self):
         create = {
@@ -100,11 +97,8 @@ class QuickTest(APITestCase):
             create,
             format='json'
         )
-        check_status_content(
-            response,
-            status.HTTP_201_CREATED,
-            expected_create
-        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert parse_body(response) == expected_create
 
     def test_update_snippet(self):
         update = {
