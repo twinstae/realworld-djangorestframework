@@ -1,42 +1,35 @@
 from django.contrib.auth.models import User, Group
-from rest_framework import serializers
+from rest_framework.serializers import Serializer, HyperlinkedModelSerializer, IntegerField, CharField, BooleanField
+from rest_framework.serializers import ChoiceField
 
 from realworld.apps.quickstart.models import LANGUAGE_CHOICES, STYLE_CHOICES, Snippet
 
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class UserSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = User
         fields = ['url', 'username', 'email', 'groups']
 
 
-class GroupSerializer(serializers.HyperlinkedModelSerializer):
+class GroupSerializer(HyperlinkedModelSerializer):
     class Meta:
         model = Group
         fields = ['url', 'name']
 
 
-class SnippetSerializer(serializers.Serializer):
-    id = serializers.IntegerField(read_only=True)
-    title = serializers.CharField(
-        required=False,
-        allow_blank=True,
-        max_length=100
-    )
-    code = serializers.CharField(
-        sytle={'base_template': 'textarea.html'}
-    )
-    linenos = serializers.BooleanField(
-        required=False
-    )
-    language = serializers.ChoiceField(
-        choices=LANGUAGE_CHOICES,
-        default='python'
-    )
-    style = serializers.ChoiceField(
-        choices=STYLE_CHOICES,
-        default='friendly'
-    )
+class SnippetSerializer(Serializer):
+    id = IntegerField(
+        read_only=True)
+    title = CharField(
+        required=False, allow_blank=True, max_length=100)
+    code = CharField(
+        style={'base_template': 'textarea.html'})
+    linenos = BooleanField(
+        required=False)
+    language = ChoiceField(
+        choices=LANGUAGE_CHOICES, default='python')
+    style = ChoiceField(
+        choices=STYLE_CHOICES, default='friendly')
 
     def create(self, validated_data):
         return Snippet.objects.create(**validated_data)

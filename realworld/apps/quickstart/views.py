@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User, Group
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets
 from rest_framework.parsers import JSONParser
 
 from realworld.apps.quickstart.models import Snippet
