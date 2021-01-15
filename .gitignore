@@ -92,3 +92,5 @@ db.sqlite3
 .idea
 
 realworld/secret
+realworld/secret.py
+realworld/settings.py
