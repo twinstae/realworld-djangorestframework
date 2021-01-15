@@ -1,13 +1,16 @@
 from django.urls import path, include
 from rest_framework import routers
+from rest_framework.routers import DefaultRouter
+
 from realworld.apps.quickstart import views
 
-router = routers.DefaultRouter()
+router = DefaultRouter()
+router.register(r'snippets', views.SnippetViewSet)
 router.register(r'users', views.UserViewSet)
 
+# The API URLs are now determined automatically by the router.
 urlpatterns = [
     path('', include(router.urls)),
-    path('', include('realworld.apps.quickstart.urls')),
 ]
 
 urlpatterns += [
