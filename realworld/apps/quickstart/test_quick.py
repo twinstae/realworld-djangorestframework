@@ -127,6 +127,13 @@ class QuickTest(APITestCase):
              'title': ''}
         )
 
+    def test_delete_snippet(self):
+
+        response = self.client.delete(
+            '/snippets/1'
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
     def test_get_snippet_2(self):
         response = self.client.get('/snippets/2')
         check_status_content(
