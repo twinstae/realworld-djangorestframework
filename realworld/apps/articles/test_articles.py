@@ -38,7 +38,9 @@ class ArticleTest(APITestCase):
             username="stelo",
             email="rabolution@gmail.com"
         )
+        cls.user.save()
         cls.profile = Profile(user=cls.user)
+        cls.profile.save()
 
         cls.article_1 = Article(
             author=cls.profile,
@@ -46,12 +48,15 @@ class ArticleTest(APITestCase):
             description='디스크립션',
             body='바디',
         )
+        cls.article_1.save()
+
         cls.article_2 = Article(
             author=cls.profile,
             title='제목1',
             description='개요2',
             body='내용3',
         )
+        cls.article_2.save()
 
     def test_create_article(self):
         self.client.force_login(user=self.user)
