@@ -1,5 +1,7 @@
 import io
+from typing import Union
 
+from django.http import JsonResponse, HttpResponse
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
@@ -28,6 +30,21 @@ expected = [
 ]
 
 
+def parse_body(
+        response: Union[JsonResponse, HttpResponse],
+        method='json'
+):
+    if method == 'json':
+        return parse_json_body(response)
+    return None
+
+
+def parse_json_body(response):
+    stream = io.BytesIO(response.content)
+    result = JSONParser().parse(stream)
+    return result
+
+
 class QuickTest(APITestCase):
     client = APIClient()
 
@@ -53,14 +70,72 @@ class QuickTest(APITestCase):
         response = self.client.get('/users/')
         assert response.status_code == status.HTTP_200_OK
 
+    def test_get_snippet_list_wrong_url(self):
+        response = self.client.get('/snippets')
+        assert response.status_code == status.HTTP_301_MOVED_PERMANENTLY
+
     def test_get_snippet_list(self):
         response = self.client.get('/snippets/')
-        assert response.status_code == status.HTTP_200_OK
-        stream = io.BytesIO(response.content)
-        assert JSONParser().parse(stream) == expected
+        check_status_content(
+            response,
+            status.HTTP_200_OK,
+            expected
+        )
+
+    def test_create_snippet(self):
+        create = {
+                'code': 'new idea',
+                'language': 'dart'
+            }
+        expected_create = {
+            'code': 'new idea',
+            'id': 3,
+            'language': 'dart',
+            'linenos': False,
+            'style': 'friendly',
+            'title': ''
+        }
+        response = self.client.post(
+            '/snippets/',
+            create,
+            format='json'
+        )
+        check_status_content(
+            response,
+            status.HTTP_201_CREATED,
+            expected_create
+        )
+
+    def test_update_snippet(self):
+        update = {
+            'code': "what can i do now!",
+            'linenos': True
+        }
+        response = self.client.put(
+            '/snippets/1',
+            update,
+            format='json'
+        )
+        check_status_content(
+            response,
+            status.HTTP_200_OK,
+            {'code': 'what can i do now!',
+             'id': 1,
+             'language': 'python',
+             'linenos': True,
+             'style': 'friendly',
+             'title': ''}
+        )
 
     def test_get_snippet_2(self):
         response = self.client.get('/snippets/2')
-        assert response.status_code == status.HTTP_200_OK
-        stream = io.BytesIO(response.content)
-        assert JSONParser().parse(stream) == expected[1]
+        check_status_content(
+            response,
+            status.HTTP_200_OK,
+            expected[1]
+        )
+
+
+def check_status_content(response, status_expected, content_expected):
+    assert response.status_code == status_expected
+    assert parse_body(response) == content_expected
