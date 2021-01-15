@@ -11,26 +11,27 @@ from rest_framework.test import APITestCase, APIClient
 from realworld.apps.quickstart.models import Snippet
 from realworld.apps.quickstart.serializers import SnippetSerializer
 
-expected = [
-    {
-        "id": 1,
-        "title": "",
-        "code": "foo = \"bar\"\n",
-        "linenos": False,
-        "language": "python",
-        "style": "friendly",
-        'owner': 'stelo'
-    },
-    {
-        'code': 'print("hello, world")',
-        'id': 2,
-        'language': 'python',
-        'linenos': False,
-        'owner': 'stelo',
-        'style': 'friendly',
-        'title': ''
-     }
-]
+expected = [{'code': 'foo = "bar",',
+             'highlight': 'http://testserver/snippets/1/highlight/',
+             'id': 1,
+             'language': 'python',
+             'linenos': False,
+             'owner': 'stelo',
+             'style': 'friendly',
+             'title': '',
+             'url': 'http://testserver/snippets/1/'},
+            {'code': 'print("hello, world")',
+             'highlight': 'http://testserver/snippets/2/highlight/',
+             'id': 2,
+             'language': 'python',
+             'linenos': False,
+             'owner': 'stelo',
+             'style': 'friendly',
+             'title': '',
+             'url': 'http://testserver/snippets/2/'}]
+
+SNIPPETS_LIST = '/snippets/'
+SNIPPETS_DETAIL = '/snippets/2/'
 
 
 def parse_body(
@@ -69,46 +70,43 @@ class QuickTest(APITestCase):
         )
         cls.snippet_2.save()
 
-    def test_snippet_serializer(self):
-        serializer = SnippetSerializer(self.snippet)
-        assert serializer.data == expected[0]
-
-        content = JSONRenderer().render(serializer.data)
-        stream = io.BytesIO(content)
-        data = JSONParser().parse(stream)
-
-        serializer = SnippetSerializer(data=data)
-        assert serializer.is_valid()
-
     def test_get_users_list(self):
-        response = self.client.get('/users/')
+        response = self.client.get(
+            SNIPPETS_LIST
+        )
         assert response.status_code == status.HTTP_200_OK
 
     def test_get_snippet_list_wrong_url(self):
-        response = self.client.get('/snippets')
+        response = self.client.get(
+            SNIPPETS_LIST[:-1]
+        )
         assert response.status_code == status.HTTP_301_MOVED_PERMANENTLY
 
     def test_get_snippet_list(self):
-        response = self.client.get('/snippets/')
+        response = self.client.get(
+            SNIPPETS_LIST
+        )
         assert response.status_code == status.HTTP_200_OK
         assert parse_body(response)['results'] == expected
 
     def test_create_snippet(self):
         self.client.force_login(user=self.user)
         create = {
-                'code': 'new idea',
-            }
+            'code': 'new idea',
+        }
         expected_create = {
             'code': 'new idea',
+            'highlight': 'http://testserver/snippets/3/highlight/',
             'id': 3,
             'language': 'python',
-            'owner': 'stelo',
             'linenos': False,
+            'owner': 'stelo',
             'style': 'friendly',
-            'title': ''
+            'title': '',
+            'url': 'http://testserver/snippets/3/'
         }
         response = self.client.post(
-            '/snippets/',
+            SNIPPETS_LIST,
             create,
             format='json'
         )
@@ -121,19 +119,19 @@ class QuickTest(APITestCase):
             'code': "what can i do now!"
         }
         response = self.client.put(
-            '/snippets/1/',
+            SNIPPETS_DETAIL,
             update,
             format='json'
         )
-        expected_update = {
-            'code': 'what can i do now!',
-            'id': 1,
-            'language': 'python',
-            'linenos': False,
-            'owner': 'stelo',
-            'style': 'friendly',
-            'title': ''
-        }
+        expected_update = {'code': 'what can i do now!',
+                           'highlight': 'http://testserver/snippets/2/highlight/',
+                           'id': 2,
+                           'language': 'python',
+                           'linenos': False,
+                           'owner': 'stelo',
+                           'style': 'friendly',
+                           'title': '',
+                           'url': 'http://testserver/snippets/2/'}
         assert response.status_code == status.HTTP_200_OK
         assert parse_body(response) == expected_update
 
@@ -141,14 +139,20 @@ class QuickTest(APITestCase):
         self.client.force_login(user=self.user)
 
         response = self.client.delete(
-            '/snippets/2/'
+            SNIPPETS_DETAIL
         )
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
+    def test_delete_snippet_without_login(self):
+        response = self.client.delete(
+            SNIPPETS_DETAIL
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
     def test_get_snippet_2(self):
-        response = self.client.get('/snippets/2/')
+        response = self.client.get(
+            SNIPPETS_DETAIL
+        )
         content_expected = expected[1]
         assert response.status_code == status.HTTP_200_OK
         assert parse_body(response) == content_expected
-
-
