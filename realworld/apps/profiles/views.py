@@ -27,9 +27,9 @@ class ProfileAPIView(APIView):
             context={'request': request}
         )
 
-    def response_profile(self, followee, request, status):
+    def response_profile(self, followee, request, status_code):
         serializer = self.get_serializer(followee, request)
-        return Response(serializer.data, status=status)
+        return Response(serializer.data, status=status_code)
 
 
 class ProfileRetrieveAPIView(ProfileAPIView):
