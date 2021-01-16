@@ -15,12 +15,12 @@ class ProfileSerializer(ser.ModelSerializer):
         read_only_fields = ('username',)
 
     @staticmethod
-    def get_image(obj):
+    def get_image(obj) -> str:
         if obj.image:
             return obj.image
         return 'https://static.productionready.io/images/smiley-cyrus.jpg'
 
-    def get_following(self, instance):
+    def get_following(self, instance: Profile) -> bool:
         request = self.context.get('request', None)
         if request is None:
             return False
