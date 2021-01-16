@@ -34,10 +34,9 @@ class ArticleTest(APITestCase):
             format='json'
         )
         cls.assert_201_created(response)
-        user = JwtUser.objects.get_by_natural_key('rabolution@gmail.com')
-        Profile.objects.create(user=user)
+        cls.user = JwtUser.objects.get_by_natural_key('rabolution@gmail.com')
+        Profile.objects.create(user=cls.user)
         cls.profile = Profile.objects.select_related('user').get(user__username='stelo')
-
         cls.article_1 = ArticleTest.create_article(cls.profile, '타이틀', '디스크립션', '바디')
         cls.article_2 = ArticleTest.create_article(cls.profile, '제목1', '개요2', '내용3')
         cls.slug_1 = Article.objects.get(pk=1).slug
@@ -55,13 +54,14 @@ class ArticleTest(APITestCase):
         return article
 
     def test_create_article(self):
+        self.client.force_authenticate(user=self.user, token='Token ' + self.user.token)
         response = self.client.post(
             ARTICLE_URL,
             CREATE_DATA,
             format='json'
         )
         self.assert_201_created(response)
-        body = parse_body(response)
+        body = parse_body(response)['article']
         assert body['title'] == "제목"
         assert body['description'] == "개요"
         assert body['body'] == "내용"
@@ -72,6 +72,7 @@ class ArticleTest(APITestCase):
             CREATE_DATA,
             format='json'
         )
+        force_authenticate(request, user=self.user, token='Token ' + self.user.token)
         view = ArticleViewSet.as_view({'post': 'create'})
         response = view(request)
 
