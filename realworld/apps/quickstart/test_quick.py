@@ -1,13 +1,9 @@
-import io
-from typing import Union
-
 from django.contrib.auth.models import User
-from django.http import JsonResponse, HttpResponse
 from rest_framework import status
-from rest_framework.parsers import JSONParser
 from rest_framework.test import APITestCase, APIClient
 
 from realworld.apps.quickstart.models import Snippet
+from realworld.testing_util import parse_body
 
 EXPECTED = [{'code': 'foo = "bar",',
              'highlight': 'http://testserver/snippets/1/highlight/',
@@ -32,21 +28,6 @@ CREATE_DATA = {'code': 'new idea'}
 
 SNIPPETS_LIST = '/snippets/'
 SNIPPETS_DETAIL = '/snippets/2/'
-
-
-def parse_body(
-        response: Union[JsonResponse, HttpResponse],
-        method='json'
-):
-    if method == 'json':
-        return parse_json_body(response)
-    return None
-
-
-def parse_json_body(response):
-    stream = io.BytesIO(response.content)
-    result = JSONParser().parse(stream)
-    return result
 
 
 class QuickTest(APITestCase):

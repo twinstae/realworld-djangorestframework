@@ -1,33 +1,13 @@
-import io
-from typing import Union
-
 from django.contrib.auth.models import User
-from django.http import JsonResponse, HttpResponse
-# Create your tests here.
+
 from rest_framework import status
-from rest_framework.parsers import JSONParser
 from rest_framework.test import APITestCase, APIClient, APIRequestFactory, force_authenticate
 
 from realworld.apps.articles.models import Article
 from realworld.apps.articles.signals import get_slug_from_title
 from realworld.apps.articles.views import ArticleViewSet
 from realworld.apps.profiles.models import Profile
-
-
-def parse_body(
-        response: Union[JsonResponse, HttpResponse],
-        method='json'
-):
-    if method == 'json':
-        return parse_json_body(response)
-    return None
-
-
-def parse_json_body(response):
-    stream = io.BytesIO(response.content)
-    result = JSONParser().parse(stream)
-    return result
-
+from realworld.testing_util import parse_body
 
 CREATE_DATA = {
     "article": {
@@ -116,7 +96,7 @@ class ArticleTest(APITestCase):
         assert response.status_code == status.HTTP_200_OK
 
     def test_retrieve_article_view(self):
-        request = self.factory.get(ARTICLE_URL+ self.slug_1)
+        request = self.factory.get(ARTICLE_URL + self.slug_1)
         view = ArticleViewSet.as_view({'get': 'retrieve'})
         response = view(request, slug=self.slug_1)
         assert response.status_code == status.HTTP_200_OK
