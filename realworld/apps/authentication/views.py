@@ -54,18 +54,31 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     def update(self, request, *args, **kwargs):
         user_data = request.data.get('user', {})
 
-        serializer_data = {
-            'username': user_data.get('username', request.user.username),
-            'email': user_data.get('email', request.user.email),
-            'profile': {
-                'bio': user_data.get('bio', request.user.profile.bio),
-                'image': user_data.get('image', request.user.profile.image)
-            }
-        }
+        user = request.user
+        profile = user.profile
+        serializer_data = self.get_updated_data(
+            user_data,
+            user, profile
+        )
         serializer = self.serializer_class(
-            request.user, data=serializer_data, partial=True
+            user, data=serializer_data, partial=True
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @staticmethod
+    def get_updated_data(data, mother, child):
+        def get(field_name, obj):
+            return data.get(field_name, getattr(obj, field_name))
+
+        def get_update(obj):
+            fields = map(lambda f: f.name, obj._meta.fields)
+            return {f: get(f, obj) for f in fields}
+
+        result = get_update(mother)
+        if child:
+            child_name = type(child).__name__.lower()
+            result[child_name] = get_update(child)
+        return result
