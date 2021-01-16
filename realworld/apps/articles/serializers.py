@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from realworld.apps.articles.models import Article
+from realworld.apps.articles.models import Article, Comment, Tag
 from realworld.apps.profiles.serializers import ProfileSerializer
 
 
@@ -33,3 +33,44 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     def get_updated_at(self, instance):
         return instance.updated_at.isoformat()
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = ProfileSerializer(required=False)
+    createdAt = serializers.SerializerMethodField(method_name='get_created_at')
+    updatedAt = serializers.SerializerMethodField(method_name='get_updated_at')
+
+    class Meta:
+        model = Comment
+        fields = (
+            'id',
+            'author',
+            'body',
+            'createdAt',
+            'updatedAt',
+        )
+
+    def create(self, validated_data):
+        article = self.context['article']
+        author = self.context['author']
+
+        return Comment.objects.create(
+            author=author,
+            article=article,
+            **validated_data
+        )
+
+    def get_created_at(self, instance):
+        return instance.created_at.isoformat()
+
+    def get_updated_at(self, instance):
+        return instance.updated_at.isoformat()
+
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ('tag',)
+
+    def to_representation(self, obj):
+        return obj.tag

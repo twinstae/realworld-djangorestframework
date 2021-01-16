@@ -15,6 +15,10 @@ class Article(TimestampedModel):
         related_name='articles'
     )
 
+    tags = models.ManyToManyField(
+        'articles.Tag', related_name='articles'
+    )
+
     def __str__(self):
         return self.title
 
