@@ -9,7 +9,6 @@ from rest_framework.test import APITestCase, APIClient
 
 from realworld.apps.quickstart.models import Snippet
 
-
 expected = [{'code': 'foo = "bar",',
              'highlight': 'http://testserver/snippets/1/highlight/',
              'id': 1,

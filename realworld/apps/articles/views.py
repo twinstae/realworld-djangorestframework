@@ -1,5 +1,5 @@
 from rest_framework import mixins, viewsets, status
-from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
@@ -7,7 +7,7 @@ from realworld.apps.articles.models import Article
 from realworld.apps.articles.renderers import ArticleJSONRenderer
 from realworld.apps.articles.serializers import ArticleSerializer
 from realworld.apps.profiles.models import Profile
-from realworld.strings import ARTICLE_DOES_NOT_EXIST, NO_SLUG_IN_QUERY
+from realworld.strings import ARTICLE_DOES_NOT_EXIST
 
 
 class ArticleViewSet(
@@ -20,7 +20,7 @@ class ArticleViewSet(
     lookup_field = 'slug'
     queryset = Article.objects.select_related('author', 'author__user')
     permission_classes = [IsAuthenticatedOrReadOnly]
-    renderer_classes = (ArticleJSONRenderer, )
+    renderer_classes = (ArticleJSONRenderer,)
     serializer_class = ArticleSerializer
 
     def get_queryset(self):
@@ -30,7 +30,7 @@ class ArticleViewSet(
             queryset.filter(author__user__username=author)
         return queryset
 
-    def create(self, request,  *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         serializer_context = {
             'author': Profile.objects.all()[0],
             'request': request

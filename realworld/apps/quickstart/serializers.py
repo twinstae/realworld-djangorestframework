@@ -1,10 +1,9 @@
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
 from rest_framework.fields import ReadOnlyField
 from rest_framework.relations import PrimaryKeyRelatedField, HyperlinkedIdentityField
-from rest_framework.serializers import Serializer, HyperlinkedModelSerializer, IntegerField, CharField, BooleanField
-from rest_framework.serializers import ChoiceField
+from rest_framework.serializers import HyperlinkedModelSerializer
 
-from realworld.apps.quickstart.models import LANGUAGE_CHOICES, STYLE_CHOICES, Snippet
+from realworld.apps.quickstart.models import Snippet
 
 
 class UserSerializer(HyperlinkedModelSerializer):

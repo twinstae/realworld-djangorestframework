@@ -3,8 +3,6 @@ from typing import Union
 
 from django.contrib.auth.models import User
 from django.http import JsonResponse, HttpResponse
-from django.test import TestCase
-
 # Create your tests here.
 from rest_framework import status
 from rest_framework.parsers import JSONParser
@@ -32,12 +30,12 @@ def parse_json_body(response):
 
 
 CREATE_DATA = {
-            "article": {
-                "title": "제목",
-                "description": "개요",
-                "body": "내용"
-            }
-        }
+    "article": {
+        "title": "제목",
+        "description": "개요",
+        "body": "내용"
+    }
+}
 
 ARTICLE_URL = '/api/articles/'
 
@@ -118,5 +116,5 @@ class ArticleTest(APITestCase):
         assert response.status_code == status.HTTP_200_OK
 
     def test_retrieve_article(self):
-        response = self.client.get(ARTICLE_URL+self.slug_1)
+        response = self.client.get(ARTICLE_URL + self.slug_1)
         assert response.status_code == status.HTTP_200_OK
