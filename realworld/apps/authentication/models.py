@@ -62,7 +62,7 @@ class JwtUser(AbstractBaseUser, PermissionsMixin, TimestampedModel):
         related_query_name="jwt_user",
     )
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'email'  # authenticate by email instead of username
     REQUIRED_FIELDS = ['username']
     objects = UserManager()
 
@@ -81,7 +81,10 @@ class JwtUser(AbstractBaseUser, PermissionsMixin, TimestampedModel):
 
     def _generate_jwt_token(self):
         dt = datetime.now() + timedelta(days=60)
-        return self.get_token(self.pk, dt)
+        token = self.get_token(self.pk, dt)
+        if isinstance(token, bytes):
+            return token.decode('utf-8')
+        return token
 
     @staticmethod
     def get_token(pk, dt):

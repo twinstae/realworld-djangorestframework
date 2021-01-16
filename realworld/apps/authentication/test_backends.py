@@ -3,24 +3,28 @@ from datetime import datetime
 from rest_framework.test import APITestCase, APIClient, APIRequestFactory
 
 from realworld.apps.authentication.models import JwtUser
+from realworld.apps.authentication.renderers import JwtUserJSONRenderer
 
 EXPECTED_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6bnVsbC"
+dt = datetime(2021, 1, 16, 13, 43, 39, 452056)
+user = JwtUser(
+    username='stelo',
+    email='twinstae@gmail.com'
+)
+renderer = JwtUserJSONRenderer()
+EXPECTED_JSON = '{"user": {"username": "stelo", "email": "twinstae@gmail.com", "token": ' \
++ '"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6bnVsbC"}}'
 
 
-class ArticleTest(APITestCase):
-    client = APIClient(enforce_csrf_checks=True)
-    factory = APIRequestFactory(enforce_csrf_checks=True)
+def test_json_renderer():
+    rendered_json = renderer.render(data={
+        "username": 'stelo',
+        "email": 'twinstae@gmail.com',
+        "token": EXPECTED_TOKEN
+    })
+    assert rendered_json == EXPECTED_JSON
 
-    @staticmethod
-    def test_get_token():
-        dt = datetime(2021, 1, 16, 13, 43, 39, 452056)
-        user = JwtUser(
-            username='stelo',
-            email='twinstae@gmail.com'
-        )
-        user.save()
-        assert user.get_token(user.pk, dt)[:50] == EXPECTED_TOKEN[:50]
 
-    @classmethod
-    def setUpTestData(cls):
-        pass
+def test_get_token():
+    assert user.get_token(user.pk, dt)[:50] == EXPECTED_TOKEN[:50]
+

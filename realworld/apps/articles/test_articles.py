@@ -27,7 +27,8 @@ class ArticleTest(APITestCase):
     def setUpTestData(cls):
         cls.user = JwtUser.objects.create_user(
             username="stelo",
-            email="rabolution@gmail.com"
+            email="rabolution@gmail.com",
+            password="test1234"
         )
         cls.user.save()
         Profile.objects.create(
