@@ -77,7 +77,7 @@ class ArticleTest(APITestCase):
         cls.article_2.save()
 
     def test_create_article(self):
-        self.client.force_authenticate(user=self.user)
+        self.client.force_login(user=self.user)
         response = self.client.post(
             ARTICLE_URL,
             CREATE_DATA,
@@ -115,6 +115,16 @@ class ArticleTest(APITestCase):
         response = view(request)
         assert response.status_code == status.HTTP_200_OK
 
+    def test_retrieve_article_view(self):
+        request = self.factory.get(ARTICLE_URL+ self.slug_1)
+        view = ArticleViewSet.as_view({'get': 'retrieve'})
+        response = view(request, slug=self.slug_1)
+        assert response.status_code == status.HTTP_200_OK
+
     def test_retrieve_article(self):
         response = self.client.get(ARTICLE_URL + self.slug_1)
         assert response.status_code == status.HTTP_200_OK
+        body = parse_body(response)['article']
+        assert body['title'] == "타이틀", body
+        assert body['description'] == "디스크립션"
+        assert body['body'] == "바디"

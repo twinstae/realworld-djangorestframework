@@ -9,7 +9,7 @@ from rest_framework.test import APITestCase, APIClient
 
 from realworld.apps.quickstart.models import Snippet
 
-expected = [{'code': 'foo = "bar",',
+EXPECTED = [{'code': 'foo = "bar",',
              'highlight': 'http://testserver/snippets/1/highlight/',
              'id': 1,
              'language': 'python',
@@ -27,6 +27,8 @@ expected = [{'code': 'foo = "bar",',
              'style': 'friendly',
              'title': '',
              'url': 'http://testserver/snippets/2/'}]
+
+CREATE_DATA = {'code': 'new idea'}
 
 SNIPPETS_LIST = '/snippets/'
 SNIPPETS_DETAIL = '/snippets/2/'
@@ -58,12 +60,12 @@ class QuickTest(APITestCase):
         )
         cls.user.save()
         cls.snippet = Snippet(
-            code=expected[0]['code'],
+            code=EXPECTED[0]['code'],
             owner=cls.user
         )
         cls.snippet.save()
         cls.snippet_2 = Snippet(
-            code=expected[1]['code'],
+            code=EXPECTED[1]['code'],
             owner=cls.user
         )
         cls.snippet_2.save()
@@ -79,19 +81,24 @@ class QuickTest(APITestCase):
     def test_get_snippet_list(self):
         response = self.client.get(SNIPPETS_LIST)
         assert response.status_code == status.HTTP_200_OK
-        assert parse_body(response)['results'] == expected
+        assert parse_body(response)['results'] == EXPECTED
 
     def test_create_snippet_without_login(self):
-        create = {'code': 'new idea'}
-        response = self.client.post(SNIPPETS_LIST,
-                                    create, format='json')
+        response = self.client.post(
+            SNIPPETS_LIST,
+            CREATE_DATA,
+            format='json'
+        )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_create_snippet_with_login(self):
         self.client.force_login(user=self.user)
-        create = {'code': 'new idea'}
-        response = self.client.post(SNIPPETS_LIST,
-                                    create, format='json')
+        response = self.client.post(
+            SNIPPETS_LIST,
+            CREATE_DATA,
+            format='json'
+        )
+        assert response.status_code == status.HTTP_201_CREATED
         expected_create = {
             'code': 'new idea',
             'highlight': 'http://testserver/snippets/3/highlight/',
@@ -103,7 +110,6 @@ class QuickTest(APITestCase):
             'title': '',
             'url': 'http://testserver/snippets/3/'
         }
-        assert response.status_code == status.HTTP_201_CREATED
         assert parse_body(response) == expected_create
 
     def test_update_snippet_with_login(self):
@@ -131,6 +137,6 @@ class QuickTest(APITestCase):
 
     def test_get_snippet_2(self):
         response = self.client.get(SNIPPETS_DETAIL)
-        content_expected = expected[1]
+        content_expected = EXPECTED[1]
         assert response.status_code == status.HTTP_200_OK
         assert parse_body(response) == content_expected
