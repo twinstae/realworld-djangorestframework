@@ -65,16 +65,37 @@ class ProfileFollowAPIView(ProfileMixIn, APIView):
             followee, request,
             status_code)
 
-    def post(self, request, username, *args, **kwargs):
-        return self.response_after_strategy(
-            request, username,
-            lambda a, b: a.follow(b),
-            status.HTTP_201_CREATED
-        )
+    def post(self, request, username=None):
+        follower = self.request.user.profile
 
-    def delete(self, request, username, *args, **kwargs):
-        return self.response_after_strategy(
-            request, username,
-            lambda a, b: a.unfollow(b),
-            status.HTTP_200_OK
-        )
+        try:
+            followee = Profile.objects.get(user__username=username)
+        except Profile.DoesNotExist:
+            raise NotFound('A profile with this username was not found.')
+
+        if follower.pk is followee.pk:
+            raise serializers.ValidationError('You can not follow yourself.')
+
+        follower.follow(followee)
+
+        serializer = self.serializer_class(followee, context={
+            'request': request
+        })
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, username=None):
+        follower = self.request.user.profile
+
+        try:
+            followee = Profile.objects.get(user__username=username)
+        except Profile.DoesNotExist:
+            raise NotFound('A profile with this username was not found.')
+
+        follower.unfollow(followee)
+
+        serializer = self.serializer_class(followee, context={
+            'request': request
+        })
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

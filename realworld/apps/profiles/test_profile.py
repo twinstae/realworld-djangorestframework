@@ -21,15 +21,16 @@ class ProfileTest(TestCaseWithAuth):
 
     def test_retrieve_profile_view(self):
         request = self.factory.get(PROFILE_URL)
-        assert self.check_view(
+        view = ProfileRetrieveAPIView.as_view()
+        response = view(
             request,
-            ProfileRetrieveAPIView,
             username=REGISTER_USER_2['username']
-        ) == status.HTTP_200_OK
+        )
+        assert response.status_code == status.HTTP_200_OK, parse_body(response)
 
     def test_retrieve_profile(self):
         response = self.client.get(PROFILE_URL)
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_200_OK, parse_body(response)
         expected = {
             'username': "taehee",
             'bio': '',
@@ -44,24 +45,21 @@ class ProfileTest(TestCaseWithAuth):
     def test_follow_view(self):
         request = self.factory.post(FOLLOW_URL)
         self.authenticate(request)
-        assert self.check_view(
-            request,
-            ProfileRetrieveAPIView,
-            username=REGISTER_USER_2['username']
-        ) == status.HTTP_201_CREATED
+        view = ProfileFollowAPIView.as_view()
+        response = view(request, username=REGISTER_USER_2['username'])
+        assert response.status_code == status.HTTP_201_CREATED, parse_body(response)
 
     def test_unfollow_view(self):
         request = self.factory.delete(FOLLOW_URL)
         self.authenticate(request)
-        assert self.check_view(
-            request,
-            ProfileRetrieveAPIView,
-            username=REGISTER_USER_2['username']
-        ) == status.HTTP_200_OK
+        view = ProfileFollowAPIView.as_view()
+        response = view(request, username=REGISTER_USER_2['username'])
+        assert response.status_code == status.HTTP_200_OK, parse_body(response)
 
     def test_follow_then_unfollow(self):
+        self.login()
         follow_response = self.client.post(FOLLOW_URL)
-        assert follow_response.status_code == status.HTTP_201_CREATED
+        assert follow_response.status_code == status.HTTP_201_CREATED, parse_body(follow_response)
         follow_expected = {
             'username': "taehee",
             'bio': '',
@@ -71,7 +69,7 @@ class ProfileTest(TestCaseWithAuth):
         assert parse_body(follow_response)["profile"] == follow_expected
 
         unfollow_response = self.client.delete(FOLLOW_URL)
-        assert unfollow_response.status_code == status.HTTP_200_OK
+        assert unfollow_response.status_code == status.HTTP_200_OK, parse_body(follow_response)
         unfollow_expected = {
             'username': "taehee",
             'bio': '',

@@ -46,12 +46,6 @@ class TestCaseWithAuth(APITestCase):
         my_view, my_args, my_kwargs = resolve(url)
         assert my_view.__name__ == view.__name__
 
-    @staticmethod
-    def check_view(request, view, **kwargs):
-        view = view.as_view()
-        response = view(request, **kwargs)
-        return response.status_code
-
     @classmethod
     def create_user_1_2(cls):
         cls.user_2 = cls.create_get_user(REGISTER_DATA_2)
