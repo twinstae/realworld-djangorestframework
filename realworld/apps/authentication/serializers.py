@@ -52,12 +52,6 @@ class LoginSerializer(serializers.Serializer):
             'token': user.token
         }
 
-    def update(self, instance, validated_data):
-        pass
-
-    def create(self, validated_data):
-        pass
-
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(

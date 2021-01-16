@@ -90,5 +90,5 @@ class JwtUser(AbstractBaseUser, PermissionsMixin, TimestampedModel):
     def get_token(pk, dt):
         return jwt.encode({
             'id': pk,
-            'exp': int(dt.timestamp() / 60)
+            'exp': int(dt.timestamp())
         }, settings.SECRET_KEY, algorithm='HS256')

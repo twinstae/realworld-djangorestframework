@@ -36,7 +36,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
     @staticmethod
     def _authenticate_credentials(token) -> Tuple[JwtUser, str]:
         try:
-            payload = jwt.decode(token, settings.SECRET_KEY)
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
         except PyJWTError:
             raise exceptions.AuthenticationFailed(COULD_NOT_DECODE_TOKEN)
 
