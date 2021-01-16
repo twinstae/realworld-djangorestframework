@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User
 from django.db import models
 
 from realworld.apps.core.models import TimestampedModel
@@ -6,7 +5,7 @@ from realworld.apps.core.models import TimestampedModel
 
 class Profile(TimestampedModel):
     user = models.OneToOneField(
-        User, on_delete=models.CASCADE
+        'authentication.JwtUser', on_delete=models.CASCADE
     )
     bio = models.TextField(blank=True)
     image = models.URLField(blank=True)

@@ -14,7 +14,8 @@ class ProfileSerializer(ser.ModelSerializer):
         fields = ('username', 'bio', 'image', 'following')
         read_only_fields = ('username',)
 
-    def get_image(self, obj):
+    @staticmethod
+    def get_image(obj):
         if obj.image:
             return obj.image
         return 'https://static.productionready.io/images/smiley-cyrus.jpg'

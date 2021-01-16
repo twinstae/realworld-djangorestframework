@@ -1,11 +1,10 @@
-from django.contrib.auth.models import User
-
 from rest_framework import status
 from rest_framework.test import APITestCase, APIClient, APIRequestFactory, force_authenticate
 
 from realworld.apps.articles.models import Article
 from realworld.apps.articles.signals import get_slug_from_title
 from realworld.apps.articles.views import ArticleViewSet
+from realworld.apps.authentication.models import JwtUser
 from realworld.apps.profiles.models import Profile
 from realworld.testing_util import parse_body
 
@@ -26,7 +25,7 @@ class ArticleTest(APITestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create_user(
+        cls.user = JwtUser.objects.create_user(
             username="stelo",
             email="rabolution@gmail.com"
         )
