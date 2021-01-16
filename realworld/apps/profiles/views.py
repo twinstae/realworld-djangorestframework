@@ -27,14 +27,17 @@ class ProfileAPIView(APIView):
             context={'request': request}
         )
 
+    def response_profile(self, followee, request, status):
+        serializer = self.get_serializer(followee, request)
+        return Response(serializer.data, status=status)
+
 
 class ProfileRetrieveAPIView(ProfileAPIView):
     permission_classes = (AllowAny,)
 
     def retrieve(self, request, username, *args, **kwargs):
         profile = self.get_profile_or_404(username)
-        serializer = self.get_serializer(profile, request)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return self.response_profile(profile, request, status.HTTP_200_OK)
 
 
 class ProfileFollowAPIView(ProfileAPIView):
@@ -43,12 +46,12 @@ class ProfileFollowAPIView(ProfileAPIView):
     def post(self, request, username, *args, **kwargs):
         follower, followee = self.get_follower_followee_or_404(request, username)
         follower.follow(followee)
-        return self.response_followee(followee, request, status.HTTP_201_CREATED)
+        return self.response_profile(followee, request, status.HTTP_201_CREATED)
 
     def delete(self, request, username, *args, **kwargs):
         follower, followee = self.get_follower_followee_or_404(request, username)
         follower.unfollow(followee)
-        return self.response_followee(followee, request, status.HTTP_200_OK)
+        return self.response_profile(followee, request, status.HTTP_200_OK)
 
     def get_follower_followee_or_404(self, request, username):
         follower = request.user.profile
@@ -57,7 +60,3 @@ class ProfileFollowAPIView(ProfileAPIView):
             raise serializers.ValidationError(CANT_FOLLOW_YOURSELF)
 
         return follower, followee
-
-    def response_followee(self, followee, request, status):
-        serializer = self.get_serializer(followee, request)
-        return Response(serializer.data, status=status)
