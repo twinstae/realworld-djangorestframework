@@ -8,6 +8,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('realworld.apps.articles.urls'), name='articles'),
     path('api/', include('realworld.apps.authentication.urls'), name='authentication'),
+    path('api/', include('realworld.apps.profiles.urls'), name='profiles'),
 ]
 
 urlpatterns += [

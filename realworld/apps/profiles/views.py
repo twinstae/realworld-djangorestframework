@@ -1,16 +1,17 @@
-from rest_framework import status, serializers
+from rest_framework import serializers, status
 from rest_framework.exceptions import NotFound
+from rest_framework.generics import RetrieveAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from realworld.apps.profiles.models import Profile
-from realworld.apps.profiles.renderers import ProfileJSONRenderer
-from realworld.apps.profiles.serializers import ProfileSerializer
-from realworld.strings import NO_USER_FOUND_WITH_USERNAME, CANT_FOLLOW_YOURSELF
+from .models import Profile
+from .renderers import ProfileJSONRenderer
+from .serializers import ProfileSerializer
+from ...strings import NO_USER_FOUND_WITH_USERNAME, CANT_FOLLOW_YOURSELF
 
 
-class ProfileAPIView(APIView):
+class ProfileMixIn:
     renderer_classes = (ProfileJSONRenderer,)
     serializer_class = ProfileSerializer
 
@@ -27,22 +28,26 @@ class ProfileAPIView(APIView):
             context={'request': request}
         )
 
-    def resoponse_after_serialize(self, followee, request, status_code):
+    def response_after_serialize(
+            self,
+            followee, request, status_code
+    ) -> Response:
         serializer = self.get_serializer(followee, request)
         return Response(serializer.data, status=status_code)
 
 
-class ProfileRetrieveAPIView(ProfileAPIView):
+class ProfileRetrieveAPIView(RetrieveAPIView, ProfileMixIn):
     permission_classes = (AllowAny,)
+    queryset = Profile.objects.select_related('user')
 
     def retrieve(self, request, username, *args, **kwargs):
         profile = self.get_profile_or_404(username)
-        return self.resoponse_after_serialize(
+        return self.response_after_serialize(
             profile, request,
             status.HTTP_200_OK)
 
 
-class ProfileFollowAPIView(ProfileAPIView):
+class ProfileFollowAPIView(APIView, ProfileMixIn):
     permission_classes = (IsAuthenticated,)
 
     def response_after_strategy(
@@ -56,7 +61,7 @@ class ProfileFollowAPIView(ProfileAPIView):
 
         strategy(follower, followee)
 
-        return self.resoponse_after_serialize(
+        return self.response_after_serialize(
             followee, request,
             status_code)
 

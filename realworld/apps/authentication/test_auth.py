@@ -5,7 +5,6 @@ from rest_framework.test import APITestCase, APIClient, APIRequestFactory, force
 from realworld.apps.authentication.models import JwtUser
 from realworld.apps.authentication.views import RegistrationAPIView, UserRetrieveUpdateAPIView
 from realworld.apps.profiles.models import Profile
-from realworld.testing_util import parse_body
 
 REGISTER_URL = '/api/users/'
 REGISTER_DATA = {

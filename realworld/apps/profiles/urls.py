@@ -5,7 +5,7 @@ from realworld.apps.profiles.views import ProfileRetrieveAPIView, ProfileFollowA
 urlpatterns = [
     path(
         'profiles/<username>/',
-        ProfileRetrieveAPIView.as_View()
+        ProfileRetrieveAPIView
     ),
     path(
         'profiles/<username>/follow/',
