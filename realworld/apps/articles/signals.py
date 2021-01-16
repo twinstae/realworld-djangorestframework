@@ -11,18 +11,19 @@ MAXIMUM_SLUG_LENGTH = 255
 @receiver(pre_save, sender=Article)
 def add_slug_to_article_if_not_exists(sender, instance, *args, **kwargs):
     if instance and not instance.slug:
-        slug = slugify(instance.title)
-        unique = generate_random_string()
+        instance.slug = get_slug_from_title(instance.title)
 
-        if len(slug) > MAXIMUM_SLUG_LENGTH:
-            slug = slug[:MAXIMUM_SLUG_LENGTH]
 
-        while len(slug + '-' +unique) > MAXIMUM_SLUG_LENGTH:
-            parts = slug.split('-')
+def get_slug_from_title(title):
+    slug = slugify(title)
+    unique = generate_random_string()
+    if len(slug) > MAXIMUM_SLUG_LENGTH:
+        slug = slug[:MAXIMUM_SLUG_LENGTH]
+    while len(slug + '-' + unique) > MAXIMUM_SLUG_LENGTH:
+        parts = slug.split('-')
 
-            if len(parts) is 1:
-                slug = slug[:MAXIMUM_SLUG_LENGTH - len(unique) - 1]
-            else:
-                slug = '-'.join(parts[:-1])
-
-        instance.slug = slug + '-' + unique
+        if len(parts) is 1:
+            slug = slug[:MAXIMUM_SLUG_LENGTH - len(unique) - 1]
+        else:
+            slug = '-'.join(parts[:-1])
+    return slug + '-' + unique
