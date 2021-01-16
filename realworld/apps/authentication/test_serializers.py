@@ -10,6 +10,7 @@ REGISTER_DATA = {
             'password': 'test1234'  # len 8
         }
 
+
 class AuthSerializerTest(APITestCase):
     @staticmethod
     def test_registration_serializer():
@@ -17,6 +18,7 @@ class AuthSerializerTest(APITestCase):
             data=REGISTER_DATA
         )
         assert serializer.is_valid()
+        serializer.save()
 
     @staticmethod
     def test_registration_serializer_too_short_password():
@@ -29,7 +31,6 @@ class AuthSerializerTest(APITestCase):
 
     @staticmethod
     def test_authenticate():
-        AuthSerializerTest.register_user()
         user = authenticate(
             username=REGISTER_DATA['email'],
             password=REGISTER_DATA['password']
@@ -38,7 +39,6 @@ class AuthSerializerTest(APITestCase):
 
     @staticmethod
     def test_login_serializer():
-        AuthSerializerTest.register_user()
         login_serializer = LoginSerializer(
             data=REGISTER_DATA
         )
@@ -48,10 +48,3 @@ class AuthSerializerTest(APITestCase):
             'password': REGISTER_DATA['password']
         }
 
-    @staticmethod
-    def register_user():
-        registration_serializer = RegistrationSerializer(
-            data=REGISTER_DATA
-        )
-        registration_serializer.is_valid()
-        registration_serializer.save()

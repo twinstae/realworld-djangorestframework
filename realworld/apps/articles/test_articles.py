@@ -95,6 +95,10 @@ class ArticleTest(APITestCase):
         response = view(request)
         assert response.status_code == status.HTTP_200_OK
 
+    def test_list_article(self):
+        response = self.client.get(ARTICLE_URL)
+        assert response.status_code == status.HTTP_200_OK
+
     def test_retrieve_article_view(self):
         request = self.factory.get(ARTICLE_URL + self.slug_1)
         view = ArticleViewSet.as_view({'get': 'retrieve'})

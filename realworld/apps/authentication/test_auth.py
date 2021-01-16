@@ -1,19 +1,20 @@
+from django.core.handlers.wsgi import WSGIRequest
 from rest_framework import status
 from rest_framework.test import APITestCase, APIClient, APIRequestFactory
 
 from realworld.apps.authentication.models import JwtUser
+from realworld.apps.authentication.views import RegistrationAPIView
 from realworld.apps.profiles.models import Profile
 from realworld.testing_util import parse_body
 
-CREATE_DATA = {
-    "article": {
-        "title": "제목",
-        "description": "개요",
-        "body": "내용"
+REGISTER_URL = '/api/users/'
+REGISTER_DATA = {
+    'user': {
+        'username': "stelo",
+        'email': "rabolution@gmail.com",
+        'password': "test1234"
     }
 }
-
-ARTICLE_URL = '/api/articles/'
 
 
 class AuthTest(APITestCase):
@@ -22,12 +23,23 @@ class AuthTest(APITestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.user = JwtUser.objects.create_user(
-            username="stelo",
-            email="rabolution@gmail.com"
+        pass
+
+    def test_register_view(self):
+        request = self.factory.post(
+            REGISTER_URL,
+            REGISTER_DATA,
+            format='json'
         )
-        cls.user.save()
-        Profile.objects.create(
-            user=cls.user
+
+        view = RegistrationAPIView().as_view()
+        response = view(request)
+        assert response.status_code == status.HTTP_201_CREATED
+
+    def test_register(self):
+        response = self.client.post(
+            REGISTER_URL,
+            REGISTER_DATA,
+            format='json'
         )
-        cls.profile = Profile.objects.all()[0]
+        assert response.status_code == status.HTTP_201_CREATED
