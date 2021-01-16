@@ -49,14 +49,10 @@ class ProfileFollowAPIView(ProfileAPIView):
         return self.response_profile(followee, request, status.HTTP_201_CREATED)
 
     def post(self, request, username, *args, **kwargs):
-        def follow(a, b):
-            a.follow(b)
-        return self.context(request, username, follow)
+        return self.context(request, username, lambda a, b: a.follow(b))
 
     def delete(self, request, username, *args, **kwargs):
-        def unfollow(a, b):
-            a.unfollow(b)
-        return self.context(request, username, unfollow)
+        return self.context(request, username, lambda a, b: a.unfollow(b))
 
     def get_follower_followee_or_404(self, request, username):
         follower = request.user.profile
