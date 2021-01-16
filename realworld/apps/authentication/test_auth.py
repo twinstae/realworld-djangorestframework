@@ -1,4 +1,4 @@
-from django.core.handlers.wsgi import WSGIRequest
+from django.urls import resolve
 from rest_framework import status
 from rest_framework.test import APITestCase, APIClient, APIRequestFactory
 
@@ -21,10 +21,6 @@ class AuthTest(APITestCase):
     client = APIClient(enforce_csrf_checks=True)
     factory = APIRequestFactory(enforce_csrf_checks=True)
 
-    @classmethod
-    def setUpTestData(cls):
-        pass
-
     def test_register_view(self):
         request = self.factory.post(
             REGISTER_URL,
@@ -43,3 +39,7 @@ class AuthTest(APITestCase):
             format='json'
         )
         assert response.status_code == status.HTTP_201_CREATED
+
+    def test_register_url(self):
+        my_view, my_args, my_kwargs = resolve(REGISTER_URL)
+        assert my_view.__name__ == 'RegistrationAPIView'
