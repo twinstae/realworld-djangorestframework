@@ -1,3 +1,4 @@
+from django.template.response import ContentNotRenderedError
 from django.urls import resolve
 from rest_framework import status
 from rest_framework.test import APITestCase, APIClient, APIRequestFactory, force_authenticate
@@ -37,9 +38,9 @@ class ArticleTest(APITestCase):
         Profile.objects.create(user=user)
         cls.profile = Profile.objects.select_related('user').get(user__username='stelo')
 
-        cls.slug_1 = get_slug_from_title('타이틀')
         cls.article_1 = ArticleTest.create_article(cls.profile, '타이틀', '디스크립션', '바디')
         cls.article_2 = ArticleTest.create_article(cls.profile, '제목1', '개요2', '내용3')
+        cls.slug_1 = Article.objects.get(pk=1).slug
 
     @staticmethod
     def create_article(profile, title, description, body):
@@ -105,15 +106,13 @@ class ArticleTest(APITestCase):
         my_view, my_args, my_kwargs = resolve(ARTICLE_URL)
         assert my_view.__name__ == 'ArticleViewSet'
 
-    def test_retrieve_article_view(self):
-        request = self.factory.get(ARTICLE_URL + '/' + self.slug_1)
-        view = ArticleViewSet.as_view({'get': 'retrieve'})
-        response = view(request, slug=self.slug_1)
-        self.assert_status_200_OK(response)
-
     @staticmethod
     def assert_status(response, code):
-        assert response.status_code == code, parse_body(response) or response.status_code
+        try:
+            error_body = parse_body(response)
+        except ContentNotRenderedError:
+            error_body = None
+        assert response.status_code == code, error_body
 
     def test_retrieve_article(self):
         response = self.client.get(ARTICLE_URL + '/' + self.slug_1)
@@ -122,6 +121,12 @@ class ArticleTest(APITestCase):
         assert body['title'] == "타이틀"
         assert body['description'] == "디스크립션"
         assert body['body'] == "바디"
+
+    def test_retrieve_article_view(self):
+        request = self.factory.get(ARTICLE_URL + '/' + self.slug_1)
+        view = ArticleViewSet.as_view({'get': 'retrieve'})
+        response = view(request, slug=self.slug_1)
+        self.assert_status_200_OK(response)
 
     def test_retrieve_article_url(self):
         my_view, my_args, my_kwargs = resolve(ARTICLE_URL + '/' + self.slug_1)
