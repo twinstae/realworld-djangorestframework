@@ -27,7 +27,7 @@ class ProfileAPIView(APIView):
             context={'request': request}
         )
 
-    def response_profile(self, followee, request, status_code):
+    def resoponse_after_serialize(self, followee, request, status_code):
         serializer = self.get_serializer(followee, request)
         return Response(serializer.data, status=status_code)
 
@@ -37,27 +37,39 @@ class ProfileRetrieveAPIView(ProfileAPIView):
 
     def retrieve(self, request, username, *args, **kwargs):
         profile = self.get_profile_or_404(username)
-        return self.response_profile(profile, request, status.HTTP_200_OK)
+        return self.resoponse_after_serialize(
+            profile, request,
+            status.HTTP_200_OK)
 
 
 class ProfileFollowAPIView(ProfileAPIView):
     permission_classes = (IsAuthenticated,)
 
-    def context(self, request, username, strategy):
-        follower, followee = self.get_follower_followee_or_404(request, username)
-        strategy(follower, followee)
-        return self.response_profile(followee, request, status.HTTP_201_CREATED)
+    def response_after_strategy(
+            self, request, username,
+            strategy, status_code):
 
-    def post(self, request, username, *args, **kwargs):
-        return self.context(request, username, lambda a, b: a.follow(b))
-
-    def delete(self, request, username, *args, **kwargs):
-        return self.context(request, username, lambda a, b: a.unfollow(b))
-
-    def get_follower_followee_or_404(self, request, username):
         follower = request.user.profile
         followee = self.get_profile_or_404(username)
         if follower.pk is followee.pk:
             raise serializers.ValidationError(CANT_FOLLOW_YOURSELF)
 
-        return follower, followee
+        strategy(follower, followee)
+
+        return self.resoponse_after_serialize(
+            followee, request,
+            status_code)
+
+    def post(self, request, username, *args, **kwargs):
+        return self.response_after_strategy(
+            request, username,
+            lambda a, b: a.follow(b),
+            status.HTTP_201_CREATED
+        )
+
+    def delete(self, request, username, *args, **kwargs):
+        return self.response_after_strategy(
+            request, username,
+            lambda a, b: a.unfollow(b),
+            status.HTTP_200_OK
+        )
