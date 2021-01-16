@@ -7,7 +7,7 @@ from django.conf import settings
 from rest_framework import authentication, exceptions
 
 from .models import JwtUser
-from ...strings import COULD_NOT_DECODE_TOKEN, NO_USER_FOUND, USER_HAS_BEEN_DEACTIVATED
+from ...strings import COULD_NOT_DECODE_TOKEN, NO_USER_FOUND_WITH_TOKEN, USER_HAS_BEEN_DEACTIVATED
 
 
 class JWTAuthentication(authentication.BaseAuthentication):
@@ -43,7 +43,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
         try:
             user = JwtUser.objects.get(pk=payload['id'])
         except JwtUser.DoesNotExist:
-            raise exceptions.AuthenticationFailed(NO_USER_FOUND)
+            raise exceptions.AuthenticationFailed(NO_USER_FOUND_WITH_TOKEN)
 
         if not user.is_active:
             raise exceptions.AuthenticationFailed(USER_HAS_BEEN_DEACTIVATED)
