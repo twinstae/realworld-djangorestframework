@@ -43,15 +43,20 @@ class ProfileRetrieveAPIView(ProfileAPIView):
 class ProfileFollowAPIView(ProfileAPIView):
     permission_classes = (IsAuthenticated,)
 
-    def post(self, request, username, *args, **kwargs):
+    def context(self, request, username, strategy):
         follower, followee = self.get_follower_followee_or_404(request, username)
-        follower.follow(followee)
+        strategy(follower, followee)
         return self.response_profile(followee, request, status.HTTP_201_CREATED)
 
+    def post(self, request, username, *args, **kwargs):
+        def follow(a, b):
+            a.follow(b)
+        return self.context(request, username, follow)
+
     def delete(self, request, username, *args, **kwargs):
-        follower, followee = self.get_follower_followee_or_404(request, username)
-        follower.unfollow(followee)
-        return self.response_profile(followee, request, status.HTTP_200_OK)
+        def unfollow(a, b):
+            a.unfollow(b)
+        return self.context(request, username, unfollow)
 
     def get_follower_followee_or_404(self, request, username):
         follower = request.user.profile
