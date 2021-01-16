@@ -36,7 +36,7 @@ class ProfileMixIn:
         return Response(serializer.data, status=status_code)
 
 
-class ProfileRetrieveAPIView(RetrieveAPIView, ProfileMixIn):
+class ProfileRetrieveAPIView(ProfileMixIn, RetrieveAPIView):
     permission_classes = (AllowAny,)
     queryset = Profile.objects.select_related('user')
 
@@ -47,7 +47,7 @@ class ProfileRetrieveAPIView(RetrieveAPIView, ProfileMixIn):
             status.HTTP_200_OK)
 
 
-class ProfileFollowAPIView(APIView, ProfileMixIn):
+class ProfileFollowAPIView(ProfileMixIn, APIView):
     permission_classes = (IsAuthenticated,)
 
     def response_after_strategy(

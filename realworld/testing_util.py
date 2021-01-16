@@ -5,7 +5,7 @@ from django.http import JsonResponse, HttpResponse
 from django.urls import resolve
 from rest_framework import status
 from rest_framework.parsers import JSONParser
-from rest_framework.test import APITestCase, APIClient, APIRequestFactory, force_authenticate
+from rest_framework.test import APITestCase, force_authenticate
 
 from realworld.apps.authentication.models import JwtUser
 from realworld.apps.authentication.test_auth import REGISTER_URL, REGISTER_DATA
@@ -42,25 +42,15 @@ def parse_json_body(response):
 
 class TestCaseWithAuth(APITestCase):
     @staticmethod
-    def check_url(url, view_name):
+    def check_url(url, view):
         my_view, my_args, my_kwargs = resolve(url)
-        assert my_view.__name__ == view_name
+        assert my_view.__name__ == view.__name__
 
     @staticmethod
-    def check_view(request, view, status_code):
+    def check_view(request, view, **kwargs):
         view = view.as_view()
-        response = view(request)
-        assert response.status_code == status_code
-
-    @staticmethod
-    def check_response_body(response, expected, model_name=None, keys=None):
-        body = parse_body(response)
-        if model_name:
-            body = body[model_name]
-        if not keys:
-            keys = expected.keys()
-        for field_name in keys:
-            assert body[field_name] == expected[field_name]
+        response = view(request, **kwargs)
+        return response.status_code
 
     @classmethod
     def create_user_1_2(cls):
