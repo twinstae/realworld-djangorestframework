@@ -9,7 +9,7 @@ class RealworldJSONRenderer(JSONRenderer):
     pagination_object_label = 'objects'
     pagination_count_label = 'count'
 
-    def render(self, data, media_type=None, renderrer_context=None):
+    def render(self, data, media_type=None, renderer_context=None):
         if data.get('results', None) is not None:
             return json.dumps({
                 self.pagination_object_label: data['results'],

@@ -8,9 +8,10 @@ from django.test import TestCase
 # Create your tests here.
 from rest_framework import status
 from rest_framework.parsers import JSONParser
-from rest_framework.test import APITestCase, APIClient
+from rest_framework.test import APITestCase, APIClient, APIRequestFactory, force_authenticate
 
 from realworld.apps.articles.models import Article
+from realworld.apps.articles.views import ArticleViewSet
 from realworld.apps.profiles.models import Profile
 
 
@@ -28,9 +29,17 @@ def parse_json_body(response):
     result = JSONParser().parse(stream)
     return result
 
+CREATE_DATA = {
+            "article": {
+                "title": "제목",
+                "description": "개요",
+                "body": "내용"
+            }
+        }
 
 class ArticleTest(APITestCase):
-    client = APIClient()
+    client = APIClient(enforce_csrf_checks=True)
+    factory = APIRequestFactory(enforce_csrf_checks=True)
 
     @classmethod
     def setUpTestData(cls):
@@ -61,16 +70,10 @@ class ArticleTest(APITestCase):
         cls.article_2.save()
 
     def test_create_article(self):
-        self.client.force_login(user=self.user)
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(
             'api/articles/',
-            {
-                "article": {
-                    "title": "제목",
-                    "description": "개요",
-                    "body": "내용"
-                }
-            },
+            CREATE_DATA,
             format='json'
         )
         assert response.status_code == status.HTTP_201_CREATED
@@ -79,16 +82,25 @@ class ArticleTest(APITestCase):
         assert body['description'] == "개요"
         assert body['body'] == "내용"
 
+    def test_create_article_view(self):
+        request = self.factory.post(
+            'api/articles/',
+            CREATE_DATA,
+            format='json'
+        )
+        force_authenticate(request, user=self.user)
+        view = ArticleViewSet.as_view({
+            'post': 'create'
+        })
+        response = view(request)
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response
+
     def test_create_article_without_login(self):
         response = self.client.post(
             'api/articles/',
-            {
-                "article": {
-                    "title": "제목",
-                    "description": "개요",
-                    "body": "내용"
-                }
-            },
+            CREATE_DATA,
             format='json'
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN

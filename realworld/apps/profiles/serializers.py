@@ -23,7 +23,7 @@ class ProfileSerializer(ser.ModelSerializer):
         request = self.context.get('request', None)
         if request is None:
             return False
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             return False
 
         follower = request.user.profile

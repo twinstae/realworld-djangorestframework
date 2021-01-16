@@ -3,12 +3,9 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from realworld.apps.articles.models import Article
+from realworld.apps.articles.renderers import ArticleJSONRenderer
 from realworld.apps.articles.serializers import ArticleSerializer
 from realworld.apps.profiles.models import Profile
-
-
-class ArticleJSONRenderer(object):
-    pass
 
 
 class ArticleViewSet(
@@ -19,7 +16,7 @@ class ArticleViewSet(
 ):
     lookup_field = 'slug'
     queryset = Article.objects.select_related('author', 'author__user')
-    permission_classes = IsAuthenticatedOrReadOnly
+    permission_classes = [IsAuthenticatedOrReadOnly]
     renderer_classes = (ArticleJSONRenderer, )
     serializer_class = ArticleSerializer
 
