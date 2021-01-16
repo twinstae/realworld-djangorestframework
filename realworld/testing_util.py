@@ -18,4 +18,3 @@ def parse_json_body(response):
     stream = io.BytesIO(response.content)
     result = JSONParser().parse(stream)
     return result
-

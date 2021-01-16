@@ -17,7 +17,7 @@ CREATE_DATA = {
 ARTICLE_URL = '/api/articles/'
 
 
-class ArticleTest(APITestCase):
+class AuthTest(APITestCase):
     client = APIClient(enforce_csrf_checks=True)
     factory = APIRequestFactory(enforce_csrf_checks=True)
 
@@ -32,16 +32,3 @@ class ArticleTest(APITestCase):
             user=cls.user
         )
         cls.profile = Profile.objects.all()[0]
-
-    def test_create_article(self):
-        self.client.force_login(user=self.user)
-        response = self.client.post(
-            ARTICLE_URL,
-            CREATE_DATA,
-            format='json'
-        )
-        assert response.status_code == status.HTTP_201_CREATED
-        body = parse_body(response)
-        assert body['title'] == "제목"
-        assert body['description'] == "개요"
-        assert body['body'] == "내용"
