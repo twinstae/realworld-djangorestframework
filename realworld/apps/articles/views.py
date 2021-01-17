@@ -28,6 +28,15 @@ class ArticleViewSet(
         author = self.request.query_params.get('author', None)
         if author is not None:
             queryset.filter(author__user__username=author)
+        tag = self.request.query_params.get('tag', None)
+        if tag is not None:
+            queryset = queryset.filter(tags__tag=tag)
+
+        favorited_by = self.request.query_params.get('favorited', None)
+        if favorited_by is not None:
+            queryset = queryset.filter(
+                favorited_by__user__username=favorited_by
+            )
         return queryset
 
     def create(self, request, *args, **kwargs):
