@@ -27,4 +27,3 @@ def test_json_renderer():
 
 def test_get_token():
     assert user.get_token(user.pk, dt)[:50] == EXPECTED_TOKEN[:50]
-

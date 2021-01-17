@@ -11,9 +11,7 @@ from rest_framework.test import APITestCase, force_authenticate, APIClient, APIR
 
 from realworld.apps.articles.models import Article, Tag
 from realworld.apps.authentication.models import JwtUser
-from realworld.apps.authentication.test_auth import REGISTER_URL, REGISTER_DATA
 from realworld.apps.profiles.models import Profile
-
 
 def get_article_dict(title, description, body, tags):
     return {
@@ -32,9 +30,14 @@ def get_article_data(title, description, body, tags):
     }
 
 
-ARTICLE_1 = get_article_dict('타이틀', '디스크립션', '바디', ['react', '태그'])
-ARTICLE_2 = get_article_dict("제목1", "개요2", "내용3", ['django', '태그4'])
-
+REGISTER_URL = '/api/users/'
+REGISTER_DATA = {
+    'user': {
+        'username': "stelo",
+        'email': "rabolution@gmail.com",
+        'password': "test1234"
+    }
+}
 REGISTER_DATA_2 = {
     'user': {
         'username': "taehee",
@@ -42,11 +45,8 @@ REGISTER_DATA_2 = {
         'password': "t1e2s3t4"
     }
 }
-REGISTER_USER_2 = {
-    'username': "taehee",
-    'email': "twinstae@naver.com",
-    'password': "t1e2s3t4"
-}
+ARTICLE_1 = get_article_dict('타이틀', '디스크립션', '바디', ['react', '태그'])
+ARTICLE_2 = get_article_dict("제목1", "개요2", "내용3", ['django', '태그4'])
 
 
 def parse_body(
@@ -120,11 +120,8 @@ class TestCaseWithAuth(APITestCase):
     def assert_status(response, code):
         try:
             error_body = parse_body(response)
-        except (ContentNotRenderedError, ParseError) as e:
-            message = f"""
-            {response.status_code} != {code}
-            """
-            error_body = message
+        except (ContentNotRenderedError, ParseError):
+            error_body = response.data
         assert response.status_code == code, error_body
 
     @classmethod
@@ -133,31 +130,6 @@ class TestCaseWithAuth(APITestCase):
         cls.user_2 = cls.create_get_user(REGISTER_DATA_2)
         cls.profile_1 = cls.user_1.profile
         cls.profile_2 = cls.user_2.profile
-
-    @classmethod
-    def create_articles_1_2(cls):
-        cls.article_1 = cls.create_article(
-            cls.profile_1, **ARTICLE_1
-        )
-        cls.article_2 = cls.create_article(
-            cls.profile_2, **ARTICLE_2
-        )
-        cls.slug_1 = cls.article_1.slug
-
-    @staticmethod
-    def create_article(profile, title, description, body, tagList):
-        article = Article(
-            author=profile,
-            title=title,
-            description=description,
-            body=body,
-        )
-        article.save()
-        for tag in tagList:
-            t = Tag(tag=tag, slug=tag.lower())
-            t.save()
-            article.tags.add(t)
-        return article
 
     @classmethod
     def create_get_user(cls, data):
@@ -189,3 +161,28 @@ class TestCaseWithAuth(APITestCase):
         request = self.factory.__getattribute__(http)(url, data, **kwargs)
         self.authenticate(request)
         return request
+
+    @classmethod
+    def create_articles_1_2(cls):
+        cls.article_1 = cls.create_article(
+            cls.profile_1, **ARTICLE_1
+        )
+        cls.article_2 = cls.create_article(
+            cls.profile_2, **ARTICLE_2
+        )
+        cls.slug_1 = cls.article_1.slug
+
+    @staticmethod
+    def create_article(profile, title, description, body, tagList):
+        article = Article(
+            author=profile,
+            title=title,
+            description=description,
+            body=body,
+        )
+        article.save()
+        for tag in tagList:
+            t = Tag(tag=tag, slug=tag.lower())
+            t.save()
+            article.tags.add(t)
+        return article

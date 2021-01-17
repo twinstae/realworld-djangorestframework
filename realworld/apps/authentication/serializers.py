@@ -1,5 +1,3 @@
-from abc import ABC
-
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 
@@ -51,6 +49,12 @@ class LoginSerializer(serializers.Serializer):
             'username': user.username,
             'token': user.token
         }
+
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
 
 
 class UserSerializer(serializers.ModelSerializer):
