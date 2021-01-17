@@ -9,10 +9,11 @@ RETRIEVE_EXPECTED = {
         'favorited': False,
         'favoritesCount': 0,
         'title': '타이틀',
+        'tagList': ['react', '태그']
     }
 }
-CREATE_DATA = get_article_data("제목", "개요", "내용")
-UPDATE_DATA = get_article_data("제목없음", "개요없음", "내용없음")
+CREATE_DATA = get_article_data("제목", "개요", "내용", ["태그"])
+UPDATE_DATA = get_article_data("제목있음", "개요있음", "내용있음", ["태그있음"])
 
 
 class ArticleTest(TestCaseWithAuth):

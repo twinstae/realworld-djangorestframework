@@ -38,8 +38,8 @@ class ArticleSerializer(serializers.ModelSerializer):
         author = self.context.get('author', None)
         tags = validated_data.pop('tags', [])
         article = Article.objects.create(author=author, **validated_data)
-        for tag in tags:
-            article.tags.add(tag)
+        for data in tags:
+            article.tags.add(Tag(tag=data, slug=data.lower()))
         return article
 
     def get_created_at(self, instance):

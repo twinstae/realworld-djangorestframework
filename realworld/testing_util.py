@@ -9,30 +9,31 @@ from rest_framework.exceptions import ParseError
 from rest_framework.parsers import JSONParser
 from rest_framework.test import APITestCase, force_authenticate, APIClient, APIRequestFactory
 
-from realworld.apps.articles.models import Article
+from realworld.apps.articles.models import Article, Tag
 from realworld.apps.authentication.models import JwtUser
 from realworld.apps.authentication.test_auth import REGISTER_URL, REGISTER_DATA
 from realworld.apps.profiles.models import Profile
 
 
-def get_article_dict(title, description, body):
+def get_article_dict(title, description, body, tags):
     return {
         "title": title,
         "description": description,
-        "body": body
+        "body": body,
+        "tags": tags
     }
 
 
-def get_article_data(title, description, body):
+def get_article_data(title, description, body, tags):
     return {
         "article": get_article_dict(
-            title, description, body
+            title, description, body, tags
         )
     }
 
 
-ARTICLE_1 = get_article_dict('타이틀', '디스크립션', '바디')
-ARTICLE_2 = get_article_dict("제목1", "개요2", "내용3")
+ARTICLE_1 = get_article_dict('타이틀', '디스크립션', '바디', ['react', '태그'])
+ARTICLE_2 = get_article_dict("제목1", "개요2", "내용3", ['django', '태그4'])
 
 REGISTER_DATA_2 = {
     'user': {
@@ -140,14 +141,18 @@ class TestCaseWithAuth(APITestCase):
         cls.slug_1 = cls.article_1.slug
 
     @staticmethod
-    def create_article(profile, title, description, body):
+    def create_article(profile, title, description, body, tags):
         article = Article(
             author=profile,
             title=title,
             description=description,
-            body=body
+            body=body,
         )
         article.save()
+        for tag in tags:
+            t = Tag(tag=tag, slug=tag.lower())
+            t.save()
+            article.tags.add(t)
         return article
 
     @classmethod
