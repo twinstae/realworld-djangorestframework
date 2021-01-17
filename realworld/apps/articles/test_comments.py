@@ -146,3 +146,8 @@ class CommentTest(TestCaseWithAuth):
         self.login()
         response = self.client.delete(self.DELETE_COMMENT_URL[:-1]+'566/')
         self.assert_404_NOT_FOUND(response)
+
+    def test_model_str(self):
+        assert self.article_1.__str__() == '타이틀'
+        assert self.comment_1.__str__() == '바디'
+        assert self.article_1.tags.first().__str__() in ['react', '태그']

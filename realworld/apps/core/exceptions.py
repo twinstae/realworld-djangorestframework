@@ -5,7 +5,7 @@ def core_exception_handler(exc, context):
     response = exception_handler(exc, context)
     handlers = {
         'NotFound': _handle_not_found_error,
-        'ValidationsError': _handle_generic_error
+        'ValidationError': _handle_generic_error
     }
     exception_class = exc.__class__.__name__
 

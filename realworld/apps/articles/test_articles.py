@@ -1,5 +1,5 @@
 from realworld.apps.articles.models import Article
-from realworld.apps.articles.views import ArticleViewSet, TagListAPIView, ArticlesFavoriteAPIView
+from realworld.apps.articles.views import ArticleViewSet, TagListAPIView, ArticlesFavoriteAPIView, ArticlesFeedAPIView
 from realworld.testing_util import parse_body, TestCaseWithAuth, ARTICLE_2, ARTICLE_1, get_article_data
 
 ARTICLE_URL = '/api/articles'
@@ -229,3 +229,30 @@ class ArticleTest(TestCaseWithAuth):
             parse_body(response)['article'],
             expected
         )
+
+    def test_article_feed_url(self):
+        self.check_url(
+            '/api/articles/feed/',
+            ArticlesFeedAPIView
+        )
+
+    def test_article_feed_view(self):
+        request = self.auth_request('get', '/api/articles/feed/')
+        view = ArticlesFeedAPIView.as_view()
+        response = view(request)
+        self.assert_200_OK(response)
+
+    def test_article_feed(self):
+        self.login()
+        response = self.client.get('/api/articles/feed/')
+        self.assert_200_OK(response)
+        assert len(parse_body(response)['articles']) == 0
+
+        follow_response = self.client.post(f"/api/profiles/{self.user_2.username}/follow")
+        self.assert_201_created(follow_response)
+
+        after_response = self.client.get('/api/articles/feed/')
+        self.assert_200_OK(after_response)
+        articles_after = parse_body(after_response)['articles']
+        assert len(articles_after) == 1
+        assert articles_after[0]['title'] == self.article_2.title

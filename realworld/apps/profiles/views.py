@@ -1,5 +1,5 @@
 from rest_framework import serializers, status
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -15,7 +15,8 @@ class ProfileMixIn:
     renderer_classes = (ProfileJSONRenderer,)
     serializer_class = ProfileSerializer
 
-    def get_profile_or_404(self, username):
+    @staticmethod
+    def get_profile_or_404(username):
         try:
             profile = Profile.objects.get(user__username=username)
         except Profile.DoesNotExist:
@@ -57,7 +58,7 @@ class ProfileFollowAPIView(ProfileMixIn, APIView):
         follower = request.user.profile
         followee = self.get_profile_or_404(username)
         if follower.pk is followee.pk:
-            raise serializers.ValidationError(CANT_FOLLOW_YOURSELF)
+            raise ValidationError(CANT_FOLLOW_YOURSELF)
 
         strategy(follower, followee)
 
