@@ -3,7 +3,7 @@ from rest_framework import serializers
 from realworld.apps.articles.models import Tag
 
 
-class TagRelatedField(serializers.ReatedField):
+class TagRelatedField(serializers.RelatedField):
     def get_queryset(self):
         return Tag.objects.all()
 

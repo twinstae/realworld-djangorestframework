@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from realworld.apps.articles.models import Article, Comment, Tag
+from realworld.apps.articles.relations import TagRelatedField
 from realworld.apps.profiles.serializers import ProfileSerializer
 
 
@@ -11,7 +12,9 @@ class ArticleSerializer(serializers.ModelSerializer):
     createdAt = serializers.SerializerMethodField(method_name='get_created_at')
     updatedAt = serializers.SerializerMethodField(method_name='get_updated_at')
 
-    favorited = serializers.SerializerMethodField(method_name='')
+    tagList = TagRelatedField(many=True, required=False, source='tags')
+
+    favorited = serializers.SerializerMethodField()
     favoritesCount = serializers.SerializerMethodField(
         method_name='get_favorites_count'
     )
@@ -24,6 +27,7 @@ class ArticleSerializer(serializers.ModelSerializer):
             'title',
             'body',
             'description',
+            'tagList',
             'favorited',
             'favoritesCount',
             'createdAt',
@@ -32,7 +36,10 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         author = self.context.get('author', None)
+        tags = validated_data.pop('tags', [])
         article = Article.objects.create(author=author, **validated_data)
+        for tag in tags:
+            article.tags.add(tag)
         return article
 
     def get_created_at(self, instance):
@@ -49,13 +56,13 @@ class ArticleSerializer(serializers.ModelSerializer):
         if request is None:
             return False
 
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             return False
 
         return request.user.profile.has_favorited(instance)
 
     def get_favorites_count(self, instance) -> int:
-        return instance.favortied_by.count()
+        return instance.favorited_by.count()
 
 
 class CommentSerializer(serializers.ModelSerializer):

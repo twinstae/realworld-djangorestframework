@@ -1,45 +1,56 @@
-from django.template.response import ContentNotRenderedError
-from django.urls import resolve
 from rest_framework import status
-from rest_framework.test import APITestCase, APIClient, APIRequestFactory, force_authenticate
 
 from realworld.apps.articles.models import Article
 from realworld.apps.articles.signals import get_slug_from_title
 from realworld.apps.articles.views import ArticleViewSet
-from realworld.apps.authentication.models import JwtUser
-from realworld.apps.authentication.test_auth import REGISTER_URL, REGISTER_DATA
-from realworld.apps.profiles.models import Profile
-from realworld.testing_util import parse_body
+from realworld.testing_util import parse_body, TestCaseWithAuth
 
-CREATE_DATA = {
+
+def get_article_dict(title, description, body):
+    return {
+        "title": title,
+        "description": description,
+        "body": body
+    }
+
+
+def get_article_data(title, description, body):
+    return {
+        "article": get_article_dict(
+            title, description, body
+        )
+    }
+
+
+CREATE_DATA = get_article_data("제목", "개요", "내용")
+ARTICLE_1 = get_article_dict('타이틀', '디스크립션', '바디')
+ARTICLE_2 = get_article_dict("제목1", "개요2", "내용3")
+ARTICLE_URL = '/api/articles'
+RETRIEVE_EXPECTED = {
     "article": {
-        "title": "제목",
-        "description": "개요",
-        "body": "내용"
+        'body': '바디',
+        'description': '디스크립션',
+        'favorited': False,
+        'favoritesCount': 0,
+        'title': '타이틀',
     }
 }
+UPDATE_DATA = get_article_data("제목없음", "개요없음", "내용없음")
 
-ARTICLE_URL = '/api/articles'
 
-
-class ArticleTest(APITestCase):
-    client = APIClient(enforce_csrf_checks=True)
-    factory = APIRequestFactory(enforce_csrf_checks=True)
+class ArticleTest(TestCaseWithAuth):
 
     @classmethod
     def setUpTestData(cls):
-        response = cls.client.post(
-            REGISTER_URL,
-            REGISTER_DATA,
-            format='json'
+        cls.create_user_1_2()
+        cls.article_1 = cls.create_article(
+            cls.profile_1, **ARTICLE_1
         )
-        cls.assert_201_created(response)
-        cls.user = JwtUser.objects.get_by_natural_key('rabolution@gmail.com')
-        Profile.objects.create(user=cls.user)
-        cls.profile = Profile.objects.select_related('user').get(user__username='stelo')
-        cls.article_1 = ArticleTest.create_article(cls.profile, '타이틀', '디스크립션', '바디')
-        cls.article_2 = ArticleTest.create_article(cls.profile, '제목1', '개요2', '내용3')
+        cls.article_2 = cls.create_article(
+            cls.profile_2, **ARTICLE_2
+        )
         cls.slug_1 = Article.objects.get(pk=1).slug
+        cls.SLUG_ARTICLE_URL = ARTICLE_URL + '/' + cls.slug_1
 
     @staticmethod
     def create_article(profile, title, description, body):
@@ -53,34 +64,35 @@ class ArticleTest(APITestCase):
         article.save()
         return article
 
+    def test_create_article_url(self):
+        self.check_url(
+            ARTICLE_URL,
+            ArticleViewSet
+        )
+
+    def test_create_article_view(self):
+        request = self.auth_request(
+            'post',
+            ARTICLE_URL,
+            CREATE_DATA,
+            format='json'
+        )
+        view = ArticleViewSet.as_view(actions={'post': 'create'})
+        response = view(request)
+        self.assert_201_created(response)
+
     def test_create_article(self):
-        self.client.force_authenticate(user=self.user, token='Token ' + self.user.token)
+        self.login()
         response = self.client.post(
             ARTICLE_URL,
             CREATE_DATA,
             format='json'
         )
         self.assert_201_created(response)
-        body = parse_body(response)['article']
-        assert body['title'] == "제목"
-        assert body['description'] == "개요"
-        assert body['body'] == "내용"
-
-    def test_create_article_view(self):
-        request = self.factory.post(
-            ARTICLE_URL,
-            CREATE_DATA,
-            format='json'
+        self.check_item_body(
+            parse_body(response),
+            CREATE_DATA
         )
-        force_authenticate(request, user=self.user, token='Token ' + self.user.token)
-        view = ArticleViewSet.as_view({'post': 'create'})
-        response = view(request)
-
-        self.assert_201_created(response)
-
-    @classmethod
-    def assert_201_created(cls, response):
-        cls.assert_status(response, status.HTTP_201_CREATED)
 
     def test_create_article_without_login(self):
         response = self.client.post(
@@ -88,47 +100,59 @@ class ArticleTest(APITestCase):
             CREATE_DATA,
             format='json'
         )
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        self.assert_status(response, status.HTTP_403_FORBIDDEN)
 
     def test_list_article_view(self):
         request = self.factory.get(ARTICLE_URL)
-        view = ArticleViewSet.as_view({'get': 'list'})
+        view = ArticleViewSet.as_view(actions={'get': 'list'})
         response = view(request)
-        self.assert_status_200_OK(response)
-
-    def assert_status_200_OK(self, response):
-        self.assert_status(response, status.HTTP_200_OK)
+        self.assert_200_OK(response)
 
     def test_list_article(self):
         response = self.client.get(ARTICLE_URL)
-        self.assert_status_200_OK(response)
-
-    def test_list_article_url(self):
-        my_view, my_args, my_kwargs = resolve(ARTICLE_URL)
-        assert my_view.__name__ == 'ArticleViewSet'
-
-    @staticmethod
-    def assert_status(response, code):
-        try:
-            error_body = parse_body(response)
-        except ContentNotRenderedError:
-            error_body = None
-        assert response.status_code == code, error_body
-
-    def test_retrieve_article(self):
-        response = self.client.get(ARTICLE_URL + '/' + self.slug_1)
-        self.assert_status_200_OK(response)
-        body = parse_body(response)['article']
-        assert body['title'] == "타이틀"
-        assert body['description'] == "디스크립션"
-        assert body['body'] == "바디"
-
-    def test_retrieve_article_view(self):
-        request = self.factory.get(ARTICLE_URL + '/' + self.slug_1)
-        view = ArticleViewSet.as_view({'get': 'retrieve'})
-        response = view(request, slug=self.slug_1)
-        self.assert_status_200_OK(response)
+        self.assert_200_OK(response)
+        articles_body = parse_body(response)['articles']
+        self.check_list_body(
+            sorted(articles_body, key=lambda item: item['title']),
+            [ARTICLE_2, ARTICLE_1]  # 제목1 뒤에 타이틀이 온다.
+        )
 
     def test_retrieve_article_url(self):
-        my_view, my_args, my_kwargs = resolve(ARTICLE_URL + '/' + self.slug_1)
-        assert my_view.__name__ == 'ArticleViewSet'
+        self.check_url(self.SLUG_ARTICLE_URL, ArticleViewSet)
+
+    def test_retrieve_article_view(self):
+        request = self.factory.get(self.SLUG_ARTICLE_URL)
+        view = ArticleViewSet.as_view(actions={'get': 'retrieve'})
+        response = view(request, slug=self.slug_1)
+        self.assert_200_OK(response)
+
+    def test_retrieve_article(self):
+        response = self.client.get(self.SLUG_ARTICLE_URL)
+        self.assert_200_OK(response)
+        self.check_item_body(
+            parse_body(response),
+            RETRIEVE_EXPECTED
+        )
+
+    def test_update_article_view(self):
+        request = self.auth_request(
+            'put', self.SLUG_ARTICLE_URL,
+            UPDATE_DATA,
+            format='json'
+        )
+        view = ArticleViewSet.as_view(actions={'put': 'update'})
+        response = view(request, slug=self.slug_1)
+        self.assert_200_OK(response)
+
+    def test_update_article(self):
+        self.login()
+        response = self.client.get(
+            self.SLUG_ARTICLE_URL,
+            UPDATE_DATA,
+            format='json'
+        )
+        self.assert_200_OK(response)
+        self.check_item_body(
+            parse_body(response),
+            UPDATE_DATA
+        )

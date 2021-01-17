@@ -23,11 +23,11 @@ class ProfileTest(TestCaseWithAuth):
             request,
             username=REGISTER_USER_2['username']
         )
-        assert response.status_code == status.HTTP_200_OK, parse_body(response)
+        self.assert_200_OK(response)
 
     def test_retrieve_profile(self):
         response = self.client.get(PROFILE_URL)
-        assert response.status_code == status.HTTP_200_OK, parse_body(response)
+        self.assert_200_OK(response)
         expected = {
             'username': "taehee",
             'bio': '',
@@ -43,18 +43,18 @@ class ProfileTest(TestCaseWithAuth):
         request = self.auth_request('post', FOLLOW_URL)
         view = ProfileFollowAPIView.as_view()
         response = view(request, username=REGISTER_USER_2['username'])
-        assert response.status_code == status.HTTP_201_CREATED, parse_body(response)
+        self.assert_201_created(response)
 
     def test_unfollow_view(self):
         request = self.auth_request('delete', FOLLOW_URL)
         view = ProfileFollowAPIView.as_view()
         response = view(request, username=REGISTER_USER_2['username'])
-        assert response.status_code == status.HTTP_200_OK, parse_body(response)
+        self.assert_200_OK(response)
 
     def test_follow_then_unfollow(self):
         self.login()
         follow_response = self.client.post(FOLLOW_URL)
-        assert follow_response.status_code == status.HTTP_201_CREATED, parse_body(follow_response)
+        self.assert_201_created(follow_response)
         follow_expected = {
             'username': "taehee",
             'bio': '',
@@ -64,7 +64,7 @@ class ProfileTest(TestCaseWithAuth):
         assert parse_body(follow_response)["profile"] == follow_expected
 
         unfollow_response = self.client.delete(FOLLOW_URL)
-        assert unfollow_response.status_code == status.HTTP_200_OK, parse_body(follow_response)
+        self.assert_200_OK(unfollow_response)
         unfollow_expected = {
             'username': "taehee",
             'bio': '',

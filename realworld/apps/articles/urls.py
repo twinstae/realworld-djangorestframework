@@ -10,14 +10,13 @@ router.register('articles', ArticleViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    url(r'^articles/feed/?$',
-        ArticlesFeedAPIView.as_view()),
-    url(r'^articles/(?P<article_slug>[-\w]+)/favorite/?$',
-        ArticlesFavoriteAPIView.as_view()),
-    url(r'^articles/(?P<article_slug>[-\w]+)/comments/?$',
-        CommentsListCreateAPIView.as_view()),
-    url(r'^articles/(?P<article_slug>[-\w]+)/comments/(?P<comment_pk>[\d]+)/?$',
-        CommentsDestroyAPIView.as_view()),
-    url(r'^tags/?$',
-        TagListAPIView.as_view()),
+    path('articles/feed/', ArticlesFeedAPIView.as_view()),
+    path('articles/<str:article_slug>/favorite/',
+         ArticlesFavoriteAPIView.as_view()),
+    path('articles/<str:article_slug>/comments/',
+         CommentsListCreateAPIView.as_view()),
+    path('articles/<str:article_slug>/comments/<str:comment_pk>',
+         CommentsDestroyAPIView.as_view()),
+    path('tags/',
+         TagListAPIView.as_view()),
 ]

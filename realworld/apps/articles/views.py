@@ -33,10 +33,9 @@ class ArticleViewSet(
 
     def create(self, request, *args, **kwargs):
         serializer_context = {
-            'author': Profile.objects.all()[0],
+            'author': request.user.profile,
             'request': request
         }
-
         serializer_data = request.data.get('article', {})
 
         serializer = self.serializer_class(
