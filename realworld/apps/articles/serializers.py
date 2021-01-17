@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from rest_framework.serializers import raise_errors_on_nested_writes
+from rest_framework.utils import model_meta
 
 from realworld.apps.articles.models import Article, Comment, Tag
 from realworld.apps.articles.relations import TagRelatedField
@@ -38,8 +40,8 @@ class ArticleSerializer(serializers.ModelSerializer):
         author = self.context.get('author', None)
         tags = validated_data.pop('tags', [])
         article = Article.objects.create(author=author, **validated_data)
-        for data in tags:
-            article.tags.add(Tag(tag=data, slug=data.lower()))
+        for tag in tags:
+            article.tags.add(tag)
         return article
 
     def get_created_at(self, instance):

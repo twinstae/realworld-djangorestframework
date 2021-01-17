@@ -1,7 +1,8 @@
-from realworld.apps.articles.views import ArticleViewSet
+from realworld.apps.articles.views import ArticleViewSet, TagListAPIView, ArticlesFavoriteAPIView
 from realworld.testing_util import parse_body, TestCaseWithAuth, ARTICLE_2, ARTICLE_1, get_article_data
 
 ARTICLE_URL = '/api/articles'
+TAG_URL = '/api/tags/'
 RETRIEVE_EXPECTED = {
     "article": {
         'body': '바디',
@@ -23,6 +24,7 @@ class ArticleTest(TestCaseWithAuth):
         cls.create_users_1_2()
         cls.create_articles_1_2()
         cls.SLUG_ARTICLE_URL = ARTICLE_URL + '/' + cls.slug_1
+        cls.FAVORITE_URL = cls.SLUG_ARTICLE_URL + '/favorite/'
 
     def test_create_article_url(self):
         self.check_url(
@@ -49,10 +51,7 @@ class ArticleTest(TestCaseWithAuth):
             format='json'
         )
         self.assert_201_created(response)
-        self.check_item_body(
-            parse_body(response),
-            CREATE_DATA
-        )
+        self.check_item_body(parse_body(response), CREATE_DATA.copy())
 
     def test_create_article_without_login(self):
         response = self.client.post(
@@ -104,7 +103,8 @@ class ArticleTest(TestCaseWithAuth):
         view = ArticleViewSet.as_view(actions={'put': 'update'})
         response = view(request, slug=self.slug_1)
         self.assert_200_OK(response)
-        self.check_item(response.data, UPDATE_DATA['article'])
+        expected = UPDATE_DATA['article'].copy()
+        self.check_item(response.data, expected)
 
     def test_update_article(self):
         self.login()
@@ -116,5 +116,45 @@ class ArticleTest(TestCaseWithAuth):
         self.assert_200_OK(response)
         self.check_item_body(
             parse_body(response),
-            UPDATE_DATA
+            UPDATE_DATA.copy()
+        )
+
+    def test_tag_list_url(self):
+        self.check_url(
+            TAG_URL,
+            TagListAPIView
+        )
+
+    def test_tag_list_view(self):
+        request = self.factory.get(TAG_URL)
+        view = TagListAPIView.as_view()
+        response = view(request)
+        self.assert_200_OK(response)
+        assert set(response.data['tags']) == {'react', '태그', 'django', '태그4'}
+
+    def test_tag_list(self):
+        response = self.client.get(TAG_URL)
+        self.assert_200_OK(response)
+        assert set(parse_body(response)['tags']) == {'react', '태그', 'django', '태그4'}
+
+    def test_article_favorite_url(self):
+        self.check_url(
+            self.FAVORITE_URL,
+            ArticlesFavoriteAPIView
+        )
+
+    def test_article_favorite_view(self):
+        request = self.auth_request('post', self.FAVORITE_URL)
+        view = ArticlesFavoriteAPIView.as_view()
+        response = view(
+            request,
+            article_slug=self.slug_1
+        )
+        self.assert_201_created(response)
+        favorite_expected = RETRIEVE_EXPECTED['article'].copy()
+        favorite_expected['favorited'] = True
+        favorite_expected['favoritesCount'] = 1
+        self.check_item(
+            response.data,
+            favorite_expected
         )

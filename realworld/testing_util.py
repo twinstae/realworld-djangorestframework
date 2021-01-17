@@ -20,7 +20,7 @@ def get_article_dict(title, description, body, tags):
         "title": title,
         "description": description,
         "body": body,
-        "tags": tags
+        "tagList": tags
     }
 
 
@@ -86,7 +86,11 @@ class TestCaseWithAuth(APITestCase):
         for field_name in expected_item.keys():
             actual_field = actual_item[field_name]
             expected_field = expected_item[field_name]
-            assert actual_field == expected_field, f"{actual_field} != {expected_field}"
+
+            if isinstance(expected_field, list):
+                assert set(actual_field) == set(expected_field), f"{actual_field} != {expected_field}"
+            else:
+                assert actual_field == expected_field, f"{actual_field} != {expected_field}"
 
     def check_item_body(self, actual_body, expected_body):
         key = list(expected_body.keys())[0]
@@ -141,7 +145,7 @@ class TestCaseWithAuth(APITestCase):
         cls.slug_1 = cls.article_1.slug
 
     @staticmethod
-    def create_article(profile, title, description, body, tags):
+    def create_article(profile, title, description, body, tagList):
         article = Article(
             author=profile,
             title=title,
@@ -149,7 +153,7 @@ class TestCaseWithAuth(APITestCase):
             body=body,
         )
         article.save()
-        for tag in tags:
+        for tag in tagList:
             t = Tag(tag=tag, slug=tag.lower())
             t.save()
             article.tags.add(t)
