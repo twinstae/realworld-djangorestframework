@@ -5,6 +5,7 @@ from django.http import JsonResponse, HttpResponse
 from django.template.response import ContentNotRenderedError
 from django.urls import resolve
 from rest_framework import status
+from rest_framework.exceptions import ParseError
 from rest_framework.parsers import JSONParser
 from rest_framework.test import APITestCase, force_authenticate, APIClient, APIRequestFactory
 
@@ -95,18 +96,26 @@ class TestCaseWithAuth(APITestCase):
         for actual_item, expected_item in zip(sorted_body, expected_body):
             self.check_item(actual_item, expected_item)
 
-    @classmethod
-    def assert_201_created(cls, response):
-        cls.assert_status(response, status.HTTP_201_CREATED)
+    def assert_201_created(self, response):
+        self.assert_status(response, status.HTTP_201_CREATED)
 
     def assert_200_OK(self, response):
         self.assert_status(response, status.HTTP_200_OK)
+
+    def assert_204_NO_CONENT(self, response):
+        self.assert_status(response, status.HTTP_204_NO_CONTENT)
+
+    def assert_403_FORBIDDEN(self, response):
+        self.assert_status(response, status.HTTP_403_FORBIDDEN)
+
+    def assert_404_NOT_FOUND(self, response):
+        self.assert_status(response, status.HTTP_404_NOT_FOUND)
 
     @staticmethod
     def assert_status(response, code):
         try:
             error_body = parse_body(response)
-        except ContentNotRenderedError:
+        except (ContentNotRenderedError, ParseError) as e:
             message = f"""
             {response.status_code} != {code}
             """

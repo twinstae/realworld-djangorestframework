@@ -1,5 +1,3 @@
-from rest_framework import status
-
 from realworld.apps.articles.views import ArticleViewSet
 from realworld.testing_util import parse_body, TestCaseWithAuth, ARTICLE_2, ARTICLE_1, get_article_data
 
@@ -61,7 +59,7 @@ class ArticleTest(TestCaseWithAuth):
             CREATE_DATA,
             format='json'
         )
-        self.assert_status(response, status.HTTP_403_FORBIDDEN)
+        self.assert_403_FORBIDDEN(response)
 
     def test_list_article_view(self):
         request = self.factory.get(ARTICLE_URL)

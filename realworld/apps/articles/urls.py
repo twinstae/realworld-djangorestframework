@@ -15,7 +15,7 @@ urlpatterns = [
          ArticlesFavoriteAPIView.as_view()),
     path('articles/<str:article_slug>/comments/',
          CommentsListCreateAPIView.as_view()),
-    path('articles/<str:article_slug>/comments/<int:comment_pk>',
+    path('articles/<str:article_slug>/comments/<int:comment_pk>/',
          CommentsDestroyAPIView.as_view()),
     path('tags/',
          TagListAPIView.as_view()),

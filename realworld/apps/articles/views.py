@@ -132,13 +132,18 @@ class CommentsDestroyAPIView(generics.DestroyAPIView):
     queryset = Comment.objects.all()
 
     def destroy(self, request, article_slug=None, comment_pk=None):
+        comment = self.get_comment_or_404(comment_pk)
+        comment.delete()
+
+        return Response(None, status=status.HTTP_204_NO_CONTENT)
+
+    @staticmethod
+    def get_comment_or_404(comment_pk):
         try:
             comment = Comment.objects.get(pk=comment_pk)
         except Comment.DoesNotExist:
             raise NotFound('A comment with this ID does not exist.')
-        comment.delete()
-
-        return Response(None, status=status.HTTP_204_NO_CONTENT)
+        return comment
 
 
 class ArticlesFavoriteAPIView(APIView):
