@@ -1,7 +1,9 @@
+import pytest
 from django.contrib.auth import authenticate
 from rest_framework import status
 from rest_framework.test import APIClient, APIRequestFactory
 
+from realworld.apps.authentication.models import UserManager
 from realworld.apps.authentication.views import RegistrationAPIView, UserRetrieveUpdateAPIView, LoginAPIView
 from realworld.testing_util import TestCaseWithAuth, parse_body, REGISTER_DATA, REGISTER_URL, REGISTER_DATA_2
 
@@ -24,6 +26,32 @@ class AuthTest(TestCaseWithAuth):
         cls.user_1 = cls.create_get_user(REGISTER_DATA)
         cls.UPDATE_URL = REGISTER_URL+f'{cls.user_1.pk}/'
         cls.LOGIN_URL = REGISTER_URL + 'login/'
+        cls.user_manager = UserManager()
+
+    def test_create_user_without_name(self):
+        with pytest.raises(TypeError) as excinfo:
+            self.user_manager.create_user(username="", email="twinsjae@naver.com")
+
+    def test_create_user_without_email(self):
+        with pytest.raises(TypeError) as excinfo:
+            self.user_manager.create_user(username="rabbit", email="")
+
+    def test_create_superuser_without_password(self):
+        with pytest.raises(TypeError) as excinfo:
+            self.user_manager.create_user(
+                username="jaehee",
+                email="twinsjae@naver.com",
+                password="test1234"
+            )
+
+    def test_user_str(self):
+        assert self.user_1.__str__() == self.user_1.email
+
+    def test_user_get_full_name(self):
+        assert self.user_1.get_full_name() == 'twinstae'
+
+    def test_user_get_short_name(self):
+        assert self.user_1.get_short_name() == 'twinstae'
 
     def test_register_url(self):
         self.check_url(REGISTER_URL, RegistrationAPIView)

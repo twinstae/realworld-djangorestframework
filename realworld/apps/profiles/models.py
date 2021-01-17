@@ -33,7 +33,7 @@ class Profile(TimestampedModel):
         return self.follows.filter(pk=profile.pk).exists()
 
     def is_followed_by(self, profile):
-        return self.is_followed_by.filter(pk=profile.pk).exists()
+        return self.followed_by.filter(pk=profile.pk).exists()
 
     def favorite(self, article):
         self.favorites.add(article)

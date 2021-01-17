@@ -11,6 +11,9 @@ class ProfileTest(TestCaseWithAuth):
         cls.PROFILE_URL = f"/api/profiles/{cls.user_2.username}"
         cls.FOLLOW_URL = f"/api/profiles/{cls.user_2.username}/follow"
 
+    def test_profile_str(self):
+        assert self.profile_1.__str__() == 'stelo'
+
     def test_retrieve_profile_url(self):
         self.check_url(self.PROFILE_URL, ProfileRetrieveAPIView)
 
@@ -57,6 +60,15 @@ class ProfileTest(TestCaseWithAuth):
         self.login()
         follow_response = self.client.post(f"/api/profiles/{self.user_1.username}/follow")
         self.assert_status(follow_response, status.HTTP_400_BAD_REQUEST)
+
+    def test_is_followed_by_if_true(self):
+        self.login()
+        follow_response = self.client.post(self.FOLLOW_URL)
+        self.assert_201_created(follow_response)
+        assert self.profile_2.is_followed_by(self.profile_1)
+
+    def test_is_followed_by_if_false(self):
+        assert not self.profile_2.is_followed_by(self.profile_1)
 
     def test_follow_then_unfollow(self):
         self.login()

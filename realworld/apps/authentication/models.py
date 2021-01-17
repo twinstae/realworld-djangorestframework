@@ -82,8 +82,6 @@ class JwtUser(AbstractBaseUser, PermissionsMixin, TimestampedModel):
     def _generate_jwt_token(self):
         dt = datetime.now() + timedelta(days=60)
         token = self.get_token(self.pk, dt)
-        if isinstance(token, bytes):
-            return token.decode('utf-8')
         return token
 
     @staticmethod
