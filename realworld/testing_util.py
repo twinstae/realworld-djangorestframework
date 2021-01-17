@@ -5,7 +5,7 @@ from django.http import JsonResponse, HttpResponse
 from django.urls import resolve
 from rest_framework import status
 from rest_framework.parsers import JSONParser
-from rest_framework.test import APITestCase, force_authenticate
+from rest_framework.test import APITestCase, force_authenticate, APIClient, APIRequestFactory
 
 from realworld.apps.authentication.models import JwtUser
 from realworld.apps.authentication.test_auth import REGISTER_URL, REGISTER_DATA
@@ -41,6 +41,9 @@ def parse_json_body(response):
 
 
 class TestCaseWithAuth(APITestCase):
+    client = APIClient(enforce_csrf_checks=True)
+    factory = APIRequestFactory(enforce_csrf_checks=True)
+
     @staticmethod
     def check_url(url, view):
         my_view, my_args, my_kwargs = resolve(url)
@@ -76,3 +79,8 @@ class TestCaseWithAuth(APITestCase):
         force_authenticate(
             request,
             user=self.user_1, token=self.user_1.token)
+
+    def auth_request(self, http, url, **kwargs):
+        request = self.factory.__getattribute__(http)(url, **kwargs)
+        self.authenticate(request)
+        return request

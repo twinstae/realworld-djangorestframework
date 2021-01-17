@@ -9,9 +9,6 @@ FOLLOW_URL = PROFILE_URL + "/follow"
 
 
 class ProfileTest(TestCaseWithAuth):
-    client = APIClient(enforce_csrf_checks=True)
-    factory = APIRequestFactory(enforce_csrf_checks=True)
-
     @classmethod
     def setUpTestData(cls):
         cls.create_user_1_2()
@@ -43,15 +40,13 @@ class ProfileTest(TestCaseWithAuth):
         self.check_url(FOLLOW_URL, ProfileFollowAPIView)
 
     def test_follow_view(self):
-        request = self.factory.post(FOLLOW_URL)
-        self.authenticate(request)
+        request = self.auth_request('post', FOLLOW_URL)
         view = ProfileFollowAPIView.as_view()
         response = view(request, username=REGISTER_USER_2['username'])
         assert response.status_code == status.HTTP_201_CREATED, parse_body(response)
 
     def test_unfollow_view(self):
-        request = self.factory.delete(FOLLOW_URL)
-        self.authenticate(request)
+        request = self.auth_request('delete', FOLLOW_URL)
         view = ProfileFollowAPIView.as_view()
         response = view(request, username=REGISTER_USER_2['username'])
         assert response.status_code == status.HTTP_200_OK, parse_body(response)
