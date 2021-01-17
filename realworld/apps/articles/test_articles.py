@@ -134,6 +134,10 @@ class ArticleTest(TestCaseWithAuth):
             RETRIEVE_EXPECTED
         )
 
+    def test_retrieve_article_wrong_slug(self):
+        response = self.client.get(self.SLUG_ARTICLE_URL+'abc')
+        self.assert_404_NOT_FOUND(response)
+
     def test_update_article_view(self):
         request = self.auth_request(
             'put', self.SLUG_ARTICLE_URL,
