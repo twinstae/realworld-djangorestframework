@@ -161,34 +161,33 @@ class ArticlesFavoriteAPIView(APIView):
     serializer_class = ArticleSerializer
 
     def delete(self, request, article_slug=None):
-        profile = self.request.user.profile
-        serializer_context = {'request': request}
-
-        try:
-            article = Article.objects.get(slug=article_slug)
-        except Article.DoesNotExist:
-            raise NotFound('An article with this slug was not found.')
-
-        profile.unfavorite(article)
-
-        serializer = self.serializer_class(article, context=serializer_context)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return self.context(
+            request, article_slug,
+            strategy=lambda profile, article: profile.unfavorite(article),
+            status_code=status.HTTP_200_OK
+        )
 
     def post(self, request, article_slug=None):
+        return self.context(
+            request, article_slug,
+            strategy=lambda profile, article: profile.favorite(article),
+            status_code=status.HTTP_201_CREATED
+        )
+
+    def context(self, request, article_slug, strategy, status_code):
         profile = self.request.user.profile
         serializer_context = {'request': request}
 
         try:
             article = Article.objects.get(slug=article_slug)
         except Article.DoesNotExist:
-            raise NotFound('An article with this slug was not found.')
+            raise NotFound(ARTICLE_DOES_NOT_EXIST)
 
-        profile.favorite(article)
+        strategy(profile, article)
 
         serializer = self.serializer_class(article, context=serializer_context)
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status_code)
 
 
 class TagListAPIView(generics.ListAPIView):

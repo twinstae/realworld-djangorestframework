@@ -77,6 +77,36 @@ class ArticleTest(TestCaseWithAuth):
             key='title'
         )
 
+    def test_list_article_by_author(self):
+        response = self.client.get(ARTICLE_URL+'?author='+self.user_1.username)
+        self.assert_200_OK(response)
+        articles_body = parse_body(response)['articles']
+        self.check_sorted_list_body(
+            articles_body,
+            [ARTICLE_2, ARTICLE_1],  # 제목 역순
+            key='title'
+        )
+
+    def test_list_article_by_tag(self):
+        response = self.client.get(ARTICLE_URL+'?tag=리액트')
+        self.assert_200_OK(response)
+        articles_body = parse_body(response)['articles']
+        self.check_sorted_list_body(
+            articles_body,
+            [ARTICLE_2, ARTICLE_1],  # 제목 역순
+            key='title'
+        )
+
+    def test_list_article_by_favorited_by(self):
+        response = self.client.get(ARTICLE_URL+'?favorited_by')
+        self.assert_200_OK(response)
+        articles_body = parse_body(response)['articles']
+        self.check_sorted_list_body(
+            articles_body,
+            [ARTICLE_2, ARTICLE_1],  # 제목 역순
+            key='title'
+        )
+
     def test_retrieve_article_url(self):
         self.check_url(self.SLUG_ARTICLE_URL, ArticleViewSet)
 
@@ -151,10 +181,25 @@ class ArticleTest(TestCaseWithAuth):
             article_slug=self.slug_1
         )
         self.assert_201_created(response)
-        favorite_expected = RETRIEVE_EXPECTED['article'].copy()
-        favorite_expected['favorited'] = True
-        favorite_expected['favoritesCount'] = 1
+
+    def test_article_favorite(self):
+        self.login()
+        response = self.client.post(self.FAVORITE_URL)
+        self.assert_201_created(response)
+        expected = RETRIEVE_EXPECTED['article'].copy()
+        expected['favorited'] = True
+        expected['favoritesCount'] = 1
         self.check_item(
-            response.data,
-            favorite_expected
+            parse_body(response)['article'],
+            expected
+        )
+
+    def test_article_unfavorite(self):
+        self.test_article_favorite()
+        response = self.client.delete(self.FAVORITE_URL)
+        self.assert_200_OK(response)
+        expected = RETRIEVE_EXPECTED['article'].copy()
+        self.check_item(
+            parse_body(response)['article'],
+            expected
         )
