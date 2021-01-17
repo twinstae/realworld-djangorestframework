@@ -143,10 +143,11 @@ class ArticleTest(TestCaseWithAuth):
         view = ArticleViewSet.as_view(actions={'put': 'update'})
         response = view(request, slug=self.slug_1)
         self.assert_200_OK(response)
+        self.check_item(response.data, UPDATE_DATA['article'])
 
     def test_update_article(self):
         self.login()
-        response = self.client.get(
+        response = self.client.put(
             self.SLUG_ARTICLE_URL,
             UPDATE_DATA,
             format='json'
