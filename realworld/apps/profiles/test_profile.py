@@ -11,7 +11,7 @@ FOLLOW_URL = PROFILE_URL + "/follow"
 class ProfileTest(TestCaseWithAuth):
     @classmethod
     def setUpTestData(cls):
-        cls.create_user_1_2()
+        cls.create_users_1_2()
 
     def test_retrieve_profile_url(self):
         self.check_url(PROFILE_URL, ProfileRetrieveAPIView)

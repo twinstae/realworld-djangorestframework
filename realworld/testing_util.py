@@ -8,9 +8,30 @@ from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.test import APITestCase, force_authenticate, APIClient, APIRequestFactory
 
+from realworld.apps.articles.models import Article
 from realworld.apps.authentication.models import JwtUser
 from realworld.apps.authentication.test_auth import REGISTER_URL, REGISTER_DATA
 from realworld.apps.profiles.models import Profile
+
+
+def get_article_dict(title, description, body):
+    return {
+        "title": title,
+        "description": description,
+        "body": body
+    }
+
+
+def get_article_data(title, description, body):
+    return {
+        "article": get_article_dict(
+            title, description, body
+        )
+    }
+
+
+ARTICLE_1 = get_article_dict('타이틀', '디스크립션', '바디')
+ARTICLE_2 = get_article_dict("제목1", "개요2", "내용3")
 
 REGISTER_DATA_2 = {
     'user': {
@@ -48,6 +69,10 @@ class TestCaseWithAuth(APITestCase):
     user_2 = None
     profile_1 = None
     profile_2 = None
+    article_1 = None
+    article_2 = None
+    slug_1 = None
+    SLUG_ARTICLE_URL = None
 
     @staticmethod
     def check_url(url, view):
@@ -65,8 +90,9 @@ class TestCaseWithAuth(APITestCase):
         key = list(expected_body.keys())[0]
         self.check_item(actual_body[key], expected_body[key])
 
-    def check_list_body(self, actual_body, expected_body):
-        for actual_item, expected_item in zip(actual_body, expected_body):
+    def check_sorted_list_body(self, actual_body, expected_body, key):
+        sorted_body = sorted(actual_body, key=lambda item: item[key])
+        for actual_item, expected_item in zip(sorted_body, expected_body):
             self.check_item(actual_item, expected_item)
 
     @classmethod
@@ -88,11 +114,32 @@ class TestCaseWithAuth(APITestCase):
         assert response.status_code == code, error_body
 
     @classmethod
-    def create_user_1_2(cls):
+    def create_users_1_2(cls):
         cls.user_1 = cls.create_get_user(REGISTER_DATA)
         cls.user_2 = cls.create_get_user(REGISTER_DATA_2)
         cls.profile_1 = cls.user_1.profile
         cls.profile_2 = cls.user_2.profile
+
+    @classmethod
+    def create_articles_1_2(cls):
+        cls.article_1 = cls.create_article(
+            cls.profile_1, **ARTICLE_1
+        )
+        cls.article_2 = cls.create_article(
+            cls.profile_2, **ARTICLE_2
+        )
+        cls.slug_1 = cls.article_1.slug
+
+    @staticmethod
+    def create_article(profile, title, description, body):
+        article = Article(
+            author=profile,
+            title=title,
+            description=description,
+            body=body
+        )
+        article.save()
+        return article
 
     @classmethod
     def create_get_user(cls, data):

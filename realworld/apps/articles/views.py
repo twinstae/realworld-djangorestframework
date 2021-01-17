@@ -7,7 +7,6 @@ from rest_framework.views import APIView
 from realworld.apps.articles.models import Article, Tag, Comment
 from realworld.apps.articles.renderers import ArticleJSONRenderer, CommentJSONRenderer
 from realworld.apps.articles.serializers import ArticleSerializer, TagSerializer, CommentSerializer
-from realworld.apps.profiles.models import Profile
 from realworld.strings import ARTICLE_DOES_NOT_EXIST
 
 
@@ -109,7 +108,6 @@ class CommentsListCreateAPIView(generics.ListCreateAPIView):
         # want comments for a specific article, this is a good place to do
         # that filtering.
         filters = {self.lookup_field: self.kwargs[self.lookup_url_kwarg]}
-
         return queryset.filter(**filters)
 
     def create(self, request, article_slug=None):
@@ -138,7 +136,6 @@ class CommentsDestroyAPIView(generics.DestroyAPIView):
             comment = Comment.objects.get(pk=comment_pk)
         except Comment.DoesNotExist:
             raise NotFound('A comment with this ID does not exist.')
-
         comment.delete()
 
         return Response(None, status=status.HTTP_204_NO_CONTENT)
