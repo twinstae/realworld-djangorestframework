@@ -121,6 +121,6 @@ class TestCaseWithAuth(APITestCase):
             user=self.user_1, token=self.user_1.token)
 
     def auth_request(self, http, url, data=None, **kwargs):
-        request = self.factory.__getattribute__(http)(url, **kwargs)
+        request = self.factory.__getattribute__(http)(url, data, **kwargs)
         self.authenticate(request)
         return request
