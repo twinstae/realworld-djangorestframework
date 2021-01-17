@@ -13,6 +13,7 @@ from realworld.apps.articles.models import Article, Tag
 from realworld.apps.authentication.models import JwtUser
 from realworld.apps.profiles.models import Profile
 
+
 def get_article_dict(title, description, body, tags):
     return {
         "title": title,
@@ -97,6 +98,7 @@ class TestCaseWithAuth(APITestCase):
         self.check_item(actual_body[key], expected_body[key])
 
     def check_sorted_list_body(self, actual_body, expected_body, key):
+        assert len(actual_body) == len(expected_body), f"{actual_body}"
         sorted_body = sorted(actual_body, key=lambda item: item[key])
         for actual_item, expected_item in zip(sorted_body, expected_body):
             self.check_item(actual_item, expected_item)

@@ -1,3 +1,4 @@
+from realworld.apps.articles.models import Article
 from realworld.apps.articles.views import ArticleViewSet, TagListAPIView, ArticlesFavoriteAPIView
 from realworld.testing_util import parse_body, TestCaseWithAuth, ARTICLE_2, ARTICLE_1, get_article_data
 
@@ -77,33 +78,42 @@ class ArticleTest(TestCaseWithAuth):
             key='title'
         )
 
-    def test_list_article_by_author(self):
-        response = self.client.get(ARTICLE_URL+'?author='+self.user_1.username)
+    def test_list_article_by_author_taehee(self):
+        response = self.client.get(ARTICLE_URL, {'author': 'taehee'})
         self.assert_200_OK(response)
+
         articles_body = parse_body(response)['articles']
-        self.check_sorted_list_body(
-            articles_body,
-            [ARTICLE_2, ARTICLE_1],  # 제목 역순
-            key='title'
-        )
+        assert len(articles_body) == 1
+        assert articles_body[0]['title'] == ARTICLE_2['title']
+
+    def test_list_article_by_author_stelo(self):
+        response = self.client.get(ARTICLE_URL, {'author': 'stelo'})
+        self.assert_200_OK(response)
+
+        articles_body = parse_body(response)['articles']
+        assert len(articles_body) == 1
+        assert articles_body[0]['title'] == ARTICLE_1['title']
 
     def test_list_article_by_tag(self):
-        response = self.client.get(ARTICLE_URL+'?tag=리액트')
+        response = self.client.get(ARTICLE_URL, {'tag': 'react'})
         self.assert_200_OK(response)
         articles_body = parse_body(response)['articles']
         self.check_sorted_list_body(
             articles_body,
-            [ARTICLE_2, ARTICLE_1],  # 제목 역순
+            [ARTICLE_1],  # 제목 역순
             key='title'
         )
 
     def test_list_article_by_favorited_by(self):
-        response = self.client.get(ARTICLE_URL+'?favorited_by')
+        self.login()
+        self.test_article_favorite()
+
+        response = self.client.get(ARTICLE_URL, {'favorited': 'stelo'})
         self.assert_200_OK(response)
         articles_body = parse_body(response)['articles']
         self.check_sorted_list_body(
             articles_body,
-            [ARTICLE_2, ARTICLE_1],  # 제목 역순
+            [ARTICLE_1],  # 제목 역순
             key='title'
         )
 
@@ -194,8 +204,20 @@ class ArticleTest(TestCaseWithAuth):
             expected
         )
 
+    def test_article_favorite_without_login(self):
+        response = self.client.post(self.FAVORITE_URL)
+        self.assert_403_FORBIDDEN(response)
+
+    def test_wrong_article_favorite(self):
+        self.login()
+        response = self.client.post(ARTICLE_URL + '/-wrong/favorite/')
+        self.assert_404_NOT_FOUND(response)
+
     def test_article_unfavorite(self):
-        self.test_article_favorite()
+        self.login()
+        response = self.client.post(self.FAVORITE_URL)
+        self.assert_201_created(response)
+
         response = self.client.delete(self.FAVORITE_URL)
         self.assert_200_OK(response)
         expected = RETRIEVE_EXPECTED['article'].copy()

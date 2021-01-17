@@ -27,7 +27,7 @@ class ArticleViewSet(
         queryset = self.queryset
         author = self.request.query_params.get('author', None)
         if author is not None:
-            queryset.filter(author__user__username=author)
+            queryset = queryset.filter(author__user__username=author)
         tag = self.request.query_params.get('tag', None)
         if tag is not None:
             queryset = queryset.filter(tags__tag=tag)
@@ -113,9 +113,6 @@ class CommentsListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = CommentSerializer
 
     def filter_queryset(self, queryset):
-        # The built-in list function calls `filter_queryset`. Since we only
-        # want comments for a specific article, this is a good place to do
-        # that filtering.
         filters = {self.lookup_field: self.kwargs[self.lookup_url_kwarg]}
         return queryset.filter(**filters)
 
