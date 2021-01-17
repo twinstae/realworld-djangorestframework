@@ -120,8 +120,10 @@ class TestCaseWithAuth(APITestCase):
     def assert_status(response, code):
         try:
             error_body = parse_body(response)
-        except (ContentNotRenderedError, ParseError):
+        except ContentNotRenderedError:
             error_body = response.data
+        except ParseError:
+            error_body = f"{response.status_code} == {code}"
         assert response.status_code == code, error_body
 
     @classmethod

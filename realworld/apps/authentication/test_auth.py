@@ -78,13 +78,48 @@ class AuthTest(TestCaseWithAuth):
         self.assert_200_OK(response)
         assert 'token' in parse_body(response)['user']
 
-    def test_update_url(self):
+    def test_retrieve_update_url(self):
         self.check_url(
             self.UPDATE_URL,
             UserRetrieveUpdateAPIView
         )
 
+    def test_retrieve_view(self):
+        request = self.auth_request(
+            'get', self.UPDATE_URL
+        )
+        view = UserRetrieveUpdateAPIView().as_view()
+        response = view(request)
+        self.assert_200_OK(response)
+        expected = REGISTER_DATA['user'].copy()
+        del expected['password']
+        self.check_item(
+            response.data,
+            expected
+        )
+
+    def test_retrieve(self):
+        self.login()
+        response = self.client.get(self.UPDATE_URL)
+        self.assert_200_OK(response)
+        expected = REGISTER_DATA['user'].copy()
+        del expected['password']
+        self.check_item(
+            parse_body(response)['user'],
+            expected
+        )
+
     def test_update_view(self):
+        request = self.auth_request(
+            'put', self.UPDATE_URL,
+            UPDATE_DATA,
+            format='json'
+        )
+        view = UserRetrieveUpdateAPIView().as_view()
+        response = view(request)
+        self.assert_200_OK(response)
+
+    def test_update(self):
         request = self.auth_request(
             'put', self.UPDATE_URL,
             UPDATE_DATA,

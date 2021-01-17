@@ -2,8 +2,9 @@ from rest_framework import status
 from rest_framework.test import APIClient, APIRequestFactory
 
 from realworld.apps.profiles.views import ProfileRetrieveAPIView, ProfileFollowAPIView
-from realworld.testing_util import REGISTER_USER_2, TestCaseWithAuth, parse_body
+from realworld.testing_util import TestCaseWithAuth, parse_body, REGISTER_DATA_2
 
+REGISTER_USER_2 = REGISTER_DATA_2['user']
 PROFILE_URL = f"/api/profiles/{REGISTER_USER_2['username']}"
 FOLLOW_URL = PROFILE_URL + "/follow"
 
