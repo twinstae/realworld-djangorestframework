@@ -1,4 +1,4 @@
-from rest_framework import mixins, viewsets, status, generics
+from rest_framework import mixins, viewsets, status, generics, exceptions
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -7,24 +7,18 @@ from rest_framework.views import APIView
 from realworld.apps.articles.models import Article, Tag, Comment
 from realworld.apps.articles.renderers import ArticleJSONRenderer, CommentJSONRenderer
 from realworld.apps.articles.serializers import ArticleSerializer, TagSerializer, CommentSerializer
-from realworld.strings import ARTICLE_DOES_NOT_EXIST
+from realworld.strings import ARTICLE_DOES_NOT_EXIST, YOU_CANT_DELETE_OTHERS_COMMENT, YOU_CANT_DELETE_OTHERS_ARTICLE
 
 
 def get_article_from_slug_or_404(slug):
     try:
-        article = Article.objects.get(slug=slug)
+        article = Article.objects.select_related('author', 'author__user').get(slug=slug)
     except Article.DoesNotExist:
         raise NotFound(ARTICLE_DOES_NOT_EXIST)
     return article
 
 
-class ArticleViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    viewsets.GenericViewSet
-):
+class ArticleViewSet(viewsets.ModelViewSet):
     lookup_field = 'slug'
     queryset = Article.objects.select_related('author', 'author__user')
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -91,6 +85,7 @@ class ArticleViewSet(
     def update(self, request, slug):
         context = {'request': request}
         article = get_article_from_slug_or_404(slug)
+        self.check_author_is_request_user(article, request)
         data = request.data.get('article', {})
 
         serializer = self.serializer_class(
@@ -103,6 +98,18 @@ class ArticleViewSet(
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def destroy(self, request, slug):
+        article = get_article_from_slug_or_404(slug)
+        self.check_author_is_request_user(article, request)
+        return Response(data={}, status=status.HTTP_204_NO_CONTENT)
+
+    @staticmethod
+    def check_author_is_request_user(article, request):
+        if article.author != request.user.profile:
+            raise exceptions.PermissionDenied(
+                detail=YOU_CANT_DELETE_OTHERS_ARTICLE,
+                code=status.HTTP_403_FORBIDDEN)
 
 
 class CommentsListCreateAPIView(generics.ListCreateAPIView):
@@ -141,8 +148,8 @@ class CommentsDestroyAPIView(generics.DestroyAPIView):
 
     def destroy(self, request, article_slug=None, comment_pk=None):
         comment = self.get_comment_or_404(comment_pk)
+        self.check_author_is_request_user(comment, request)
         comment.delete()
-
         return Response(None, status=status.HTTP_204_NO_CONTENT)
 
     @staticmethod
@@ -152,6 +159,13 @@ class CommentsDestroyAPIView(generics.DestroyAPIView):
         except Comment.DoesNotExist:
             raise NotFound('A comment with this ID does not exist.')
         return comment
+
+    @staticmethod
+    def check_author_is_request_user(comment, request):
+        if comment.author != request.user.profile:
+            raise exceptions.PermissionDenied(
+                detail=YOU_CANT_DELETE_OTHERS_COMMENT,
+                code=status.HTTP_403_FORBIDDEN)
 
 
 class ArticlesFavoriteAPIView(APIView):

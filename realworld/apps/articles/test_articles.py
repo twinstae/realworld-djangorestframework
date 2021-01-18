@@ -22,6 +22,7 @@ class ArticleDangerousTest(TestCaseWithAuth):
         self.create_users_1_2()
         self.create_articles_1_2()
         self.SLUG_ARTICLE_URL = ARTICLE_URL + '/' + self.slug_1
+        self.SLUG_ARTICLE_URL_2 = ARTICLE_URL + '/' + self.article_2.slug
         self.FAVORITE_URL = self.SLUG_ARTICLE_URL + '/favorite/'
 
     def tearDown(self) -> None:
@@ -51,6 +52,15 @@ class ArticleDangerousTest(TestCaseWithAuth):
             parse_body(response),
             UPDATE_DATA.copy()
         )
+
+    def test_update_others_article(self):
+        self.login()
+        response = self.client.put(
+            self.SLUG_ARTICLE_URL_2,
+            UPDATE_DATA,
+            format='json'
+        )
+        self.assert_403_FORBIDDEN(response)
 
     def test_article_favorite_url(self):
         self.check_url(
@@ -100,6 +110,16 @@ class ArticleDangerousTest(TestCaseWithAuth):
             parse_body(response)['article'],
             expected
         )
+
+    def test_delete_article(self):
+        self.login()
+        response = self.client.delete(self.SLUG_ARTICLE_URL)
+        self.assert_204_NO_CONENT(response)
+
+    def test_delete_others_article(self):
+        self.login()
+        response = self.client.delete(self.SLUG_ARTICLE_URL_2)
+        self.assert_403_FORBIDDEN(response)
 
 
 class ArticleTest(TestCaseWithAuth):

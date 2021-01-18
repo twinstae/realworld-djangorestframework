@@ -22,7 +22,7 @@ class CommentTest(TestCaseWithAuth):
 
         cls.COMMENT_URL = cls.SLUG_ARTICLE_URL + '/comments/'
         cls.comment_1 = cls.create_comment(cls.profile_1, cls.article_1, "바디")
-        cls.comment_2 = cls.create_comment(cls.profile_1, cls.article_1, "내용1")
+        cls.comment_2 = cls.create_comment(cls.profile_2, cls.article_1, "내용1")
         cls.DELETE_COMMENT_URL = cls.COMMENT_URL+'1/'
         cls.LIST_EXPECTED = [{'body': cls.comment_2.body}, {'body': cls.comment_1.body}]
 
@@ -137,6 +137,11 @@ class CommentTest(TestCaseWithAuth):
         self.login()
         response = self.client.delete(self.DELETE_COMMENT_URL)
         self.assert_204_NO_CONENT(response)
+
+    def test_delete_others_comment(self):
+        self.login()
+        response = self.client.delete(self.COMMENT_URL+'2/')
+        self.assert_403_FORBIDDEN(response)
 
     def test_delete_comment_without_login(self):
         response = self.client.delete(self.DELETE_COMMENT_URL)
