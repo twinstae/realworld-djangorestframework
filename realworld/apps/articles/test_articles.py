@@ -120,9 +120,7 @@ class ArticleTest(TestCaseWithAuth):
     def test_create_article_view(self):
         request = self.auth_request(
             'post',
-            ARTICLE_URL,
-            CREATE_DATA,
-            format='json'
+            ARTICLE_URL, CREATE_DATA, format='json'
         )
         view = ArticleViewSet.as_view(actions={'post': 'create'})
         response = view(request)
@@ -131,18 +129,14 @@ class ArticleTest(TestCaseWithAuth):
     def test_create_article(self):
         self.login()
         response = self.client.post(
-            ARTICLE_URL,
-            CREATE_DATA,
-            format='json'
+            ARTICLE_URL, CREATE_DATA, format='json'
         )
         self.assert_201_created(response)
         self.check_item_body(parse_body(response), CREATE_DATA.copy())
 
     def test_create_article_without_login(self):
         response = self.client.post(
-            ARTICLE_URL,
-            CREATE_DATA,
-            format='json'
+            ARTICLE_URL, CREATE_DATA, format='json'
         )
         self.assert_403_FORBIDDEN(response)
 

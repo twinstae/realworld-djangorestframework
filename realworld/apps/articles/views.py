@@ -10,6 +10,14 @@ from realworld.apps.articles.serializers import ArticleSerializer, TagSerializer
 from realworld.strings import ARTICLE_DOES_NOT_EXIST
 
 
+def get_article_from_slug_or_404(slug):
+    try:
+        article = Article.objects.get(slug=slug)
+    except Article.DoesNotExist:
+        raise NotFound(ARTICLE_DOES_NOT_EXIST)
+    return article
+
+
 class ArticleViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
@@ -25,18 +33,20 @@ class ArticleViewSet(
 
     def get_queryset(self):
         queryset = self.queryset
-        author = self.request.query_params.get('author', None)
-        if author is not None:
-            queryset = queryset.filter(author__user__username=author)
-        tag = self.request.query_params.get('tag', None)
-        if tag is not None:
-            queryset = queryset.filter(tags__tag=tag)
+        filter_dict = {
+            'favorited': 'favorited_by__user__username',
+            'tag': 'tags__tag',
+            'author': 'author__user__username'
+        }
 
-        favorited_by = self.request.query_params.get('favorited', None)
-        if favorited_by is not None:
-            queryset = queryset.filter(
-                favorited_by__user__username=favorited_by
-            )
+        for param_name, field_name in filter_dict.items():
+            queryset = self.filter_by(queryset, param_name, field_name)
+        return queryset
+
+    def filter_by(self, queryset, param_name, field_name):
+        param = self.request.query_params.get(param_name, None)
+        if param is not None:
+            queryset = queryset.filter(**{field_name: param})
         return queryset
 
     def create(self, request, *args, **kwargs):
@@ -69,20 +79,22 @@ class ArticleViewSet(
         return self.get_paginated_response(serializer.data)
 
     def retrieve(self, request, slug):
-        context, instance = self.get_context_instance_from_slug(request, slug)
+        context = {'request': request}
+        article = get_article_from_slug_or_404(slug)
         serializer = self.serializer_class(
-            instance,
+            article,
             context=context
         )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def update(self, request, slug):
-        context, instance = self.get_context_instance_from_slug(request, slug)
+        context = {'request': request}
+        article = get_article_from_slug_or_404(slug)
         data = request.data.get('article', {})
 
         serializer = self.serializer_class(
-            instance,
+            article,
             context=context,
             data=data,
             partial=True
@@ -91,14 +103,6 @@ class ArticleViewSet(
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def get_context_instance_from_slug(self, request, slug):
-        serializer_context = {'request': request}
-        try:
-            serializer_instance = self.queryset.get(slug=slug)
-        except Article.DoesNotExist:
-            raise NotFound(ARTICLE_DOES_NOT_EXIST)
-        return serializer_context, serializer_instance
 
 
 class CommentsListCreateAPIView(generics.ListCreateAPIView):
@@ -118,12 +122,10 @@ class CommentsListCreateAPIView(generics.ListCreateAPIView):
 
     def create(self, request, article_slug=None):
         data = request.data.get('comment', {})
-        context = {'author': request.user.profile}
-
-        try:
-            context['article'] = Article.objects.get(slug=article_slug)
-        except Article.DoesNotExist:
-            raise NotFound('An article with this slug does not exist.')
+        context = {
+            'author': request.user.profile,
+            'article': get_article_from_slug_or_404(article_slug)
+        }
 
         serializer = self.serializer_class(data=data, context=context)
         serializer.is_valid(raise_exception=True)
@@ -174,12 +176,7 @@ class ArticlesFavoriteAPIView(APIView):
     def context(self, request, article_slug, strategy, status_code):
         profile = self.request.user.profile
         serializer_context = {'request': request}
-
-        try:
-            article = Article.objects.get(slug=article_slug)
-        except Article.DoesNotExist:
-            raise NotFound(ARTICLE_DOES_NOT_EXIST)
-
+        article = get_article_from_slug_or_404(article_slug)
         strategy(profile, article)
 
         serializer = self.serializer_class(article, context=serializer_context)
