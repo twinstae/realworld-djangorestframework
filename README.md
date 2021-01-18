@@ -26,7 +26,7 @@ urls
   -> response, status
   -> renderer
   
-원본 레포지토리에 추가한 부분
+[원본 레포지토리](https://github.com/gothinkster/django-realworld-example-app)에 추가한 부분
 4. url, view, client test
 - 공통 부분 testing_utils로 추상화
 - 특이 케이스 validation 포함
