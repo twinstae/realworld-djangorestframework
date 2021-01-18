@@ -37,3 +37,8 @@ urls
 ## 5. 과도한? 리팩토링 OOP Overkill
 - validation, filter, get context 메소드, 함수 추출, 책임 분리
 - follow/unfollow, favorite/unfavorite 람다를 이용한 strategy 패턴으로 추상화
+
+## 6. object level permission
+- 아마 원본 제작자가 까먹은 것 같은데 몇가지 구현이 안된 부분들을 구현했다.
+- Article destroy
+- update, destroy only by author. 원본에서는 인증 받은 유저라면 Article과 Comment를 수정하고 삭제할 수 있다. (자기가 쓴 게 아니라도!)
