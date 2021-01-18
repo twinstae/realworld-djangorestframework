@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate
 from rest_framework import serializers
+from rest_framework.exceptions import NotFound
 
 from realworld.apps.authentication.models import JwtUser
 from realworld.apps.profiles.serializers import ProfileSerializer
@@ -32,17 +33,7 @@ class LoginSerializer(serializers.Serializer):
     def validate(self, data):
         email = data.get('email', None)
         password = data.get('password', None)
-        if email is None:
-            raise serializers.ValidationError(EMAIL_IS_REQUIRED)
-        if password is None:
-            raise serializers.ValidationError(PASSWORD_IS_REQUIRED)
-
-        user = authenticate(username=email, password=password)
-        if user is None:
-            raise serializers.ValidationError(NO_USER_FOUND_WITH_EMAIL_PASSWORD)
-
-        if not user.is_active:
-            raise serializers.ValidationError(USER_HAS_BEEN_DEACTIVATED)
+        user = self.authenticate_user_or_validation_error(email, password)
 
         return {
             'email': user.email,
@@ -50,11 +41,12 @@ class LoginSerializer(serializers.Serializer):
             'token': user.token
         }
 
-    def create(self, validated_data):
-        pass
-
-    def update(self, instance, validated_data):
-        pass
+    @staticmethod
+    def authenticate_user_or_validation_error(email, password):
+        user = authenticate(username=email, password=password)
+        if user is None:
+            raise serializers.ValidationError(NO_USER_FOUND_WITH_EMAIL_PASSWORD)
+        return user
 
 
 class UserSerializer(serializers.ModelSerializer):

@@ -112,11 +112,19 @@ class TestCaseWithAuth(APITestCase):
     def assert_204_NO_CONENT(self, response):
         self.assert_status(response, status.HTTP_204_NO_CONTENT)
 
+    def assert_400_BAD_REQUEST(self, response):
+        self.assert_status(response, status.HTTP_400_BAD_REQUEST)
+
     def assert_403_FORBIDDEN(self, response):
         self.assert_status(response, status.HTTP_403_FORBIDDEN)
 
     def assert_404_NOT_FOUND(self, response):
         self.assert_status(response, status.HTTP_404_NOT_FOUND)
+
+    @staticmethod
+    def assert_error_detail(response, expected):
+        detail = parse_body(response)['errors']['error'][0]
+        assert detail == expected, detail
 
     @staticmethod
     def assert_status(response, code):
@@ -134,6 +142,11 @@ class TestCaseWithAuth(APITestCase):
         cls.user_2 = cls.create_get_user(REGISTER_DATA_2)
         cls.profile_1 = cls.user_1.profile
         cls.profile_2 = cls.user_2.profile
+
+    @classmethod
+    def delete_users_1_2(cls):
+        cls.user_1.delete()
+        cls.user_2.delete()
 
     @classmethod
     def create_get_user(cls, data):

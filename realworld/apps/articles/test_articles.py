@@ -1,4 +1,3 @@
-from realworld.apps.articles.models import Article
 from realworld.apps.articles.views import ArticleViewSet, TagListAPIView, ArticlesFavoriteAPIView, ArticlesFeedAPIView
 from realworld.testing_util import parse_body, TestCaseWithAuth, ARTICLE_2, ARTICLE_1, get_article_data
 
@@ -16,6 +15,91 @@ RETRIEVE_EXPECTED = {
 }
 CREATE_DATA = get_article_data("제목", "개요", "내용", ["태그"])
 UPDATE_DATA = get_article_data("제목있음", "개요있음", "내용있음", ["태그있음"])
+
+
+class ArticleDangerousTest(TestCaseWithAuth):
+    def setUp(self):
+        self.create_users_1_2()
+        self.create_articles_1_2()
+        self.SLUG_ARTICLE_URL = ARTICLE_URL + '/' + self.slug_1
+        self.FAVORITE_URL = self.SLUG_ARTICLE_URL + '/favorite/'
+
+    def tearDown(self) -> None:
+        self.delete_users_1_2()
+
+    def test_update_article_view(self):
+        request = self.auth_request(
+            'put', self.SLUG_ARTICLE_URL,
+            UPDATE_DATA,
+            format='json'
+        )
+        view = ArticleViewSet.as_view(actions={'put': 'update'})
+        response = view(request, slug=self.slug_1)
+        self.assert_200_OK(response)
+        expected = UPDATE_DATA['article'].copy()
+        self.check_item(response.data, expected)
+
+    def test_update_article(self):
+        self.login()
+        response = self.client.put(
+            self.SLUG_ARTICLE_URL,
+            UPDATE_DATA,
+            format='json'
+        )
+        self.assert_200_OK(response)
+        self.check_item_body(
+            parse_body(response),
+            UPDATE_DATA.copy()
+        )
+
+    def test_article_favorite_url(self):
+        self.check_url(
+            self.FAVORITE_URL,
+            ArticlesFavoriteAPIView
+        )
+
+    def test_article_favorite_view(self):
+        request = self.auth_request('post', self.FAVORITE_URL)
+        view = ArticlesFavoriteAPIView.as_view()
+        response = view(
+            request,
+            article_slug=self.slug_1
+        )
+        self.assert_201_created(response)
+
+    def test_article_favorite(self):
+        self.login()
+        response = self.client.post(self.FAVORITE_URL)
+        self.assert_201_created(response)
+        expected = RETRIEVE_EXPECTED['article'].copy()
+        expected['favorited'] = True
+        expected['favoritesCount'] = 1
+        self.check_item(
+            parse_body(response)['article'],
+            expected
+        )
+
+    def test_article_favorite_without_login(self):
+        response = self.client.post(self.FAVORITE_URL)
+        self.assert_403_FORBIDDEN(response)
+
+    def test_wrong_article_favorite(self):
+        self.login()
+        response = self.client.post(ARTICLE_URL + '/-wrong/favorite/')
+        self.assert_404_NOT_FOUND(response)
+
+    def test_article_unfavorite(self):
+        self.login()
+        response = self.client.post(self.FAVORITE_URL)
+        self.assert_201_created(response)
+
+        response = self.client.delete(self.FAVORITE_URL)
+        self.assert_200_OK(response)
+        expected = RETRIEVE_EXPECTED['article'].copy()
+        self.check_item(
+            parse_body(response)['article'],
+            expected
+        )
 
 
 class ArticleTest(TestCaseWithAuth):
@@ -106,7 +190,8 @@ class ArticleTest(TestCaseWithAuth):
 
     def test_list_article_by_favorited_by(self):
         self.login()
-        self.test_article_favorite()
+        response = self.client.post(self.FAVORITE_URL)
+        self.assert_201_created(response)
 
         response = self.client.get(ARTICLE_URL, {'favorited': 'stelo'})
         self.assert_200_OK(response)
@@ -138,31 +223,6 @@ class ArticleTest(TestCaseWithAuth):
         response = self.client.get(self.SLUG_ARTICLE_URL+'abc')
         self.assert_404_NOT_FOUND(response)
 
-    def test_update_article_view(self):
-        request = self.auth_request(
-            'put', self.SLUG_ARTICLE_URL,
-            UPDATE_DATA,
-            format='json'
-        )
-        view = ArticleViewSet.as_view(actions={'put': 'update'})
-        response = view(request, slug=self.slug_1)
-        self.assert_200_OK(response)
-        expected = UPDATE_DATA['article'].copy()
-        self.check_item(response.data, expected)
-
-    def test_update_article(self):
-        self.login()
-        response = self.client.put(
-            self.SLUG_ARTICLE_URL,
-            UPDATE_DATA,
-            format='json'
-        )
-        self.assert_200_OK(response)
-        self.check_item_body(
-            parse_body(response),
-            UPDATE_DATA.copy()
-        )
-
     def test_tag_list_url(self):
         self.check_url(
             TAG_URL,
@@ -180,55 +240,6 @@ class ArticleTest(TestCaseWithAuth):
         response = self.client.get(TAG_URL)
         self.assert_200_OK(response)
         assert set(parse_body(response)['tags']) == {'react', '태그', 'django', '태그4'}
-
-    def test_article_favorite_url(self):
-        self.check_url(
-            self.FAVORITE_URL,
-            ArticlesFavoriteAPIView
-        )
-
-    def test_article_favorite_view(self):
-        request = self.auth_request('post', self.FAVORITE_URL)
-        view = ArticlesFavoriteAPIView.as_view()
-        response = view(
-            request,
-            article_slug=self.slug_1
-        )
-        self.assert_201_created(response)
-
-    def test_article_favorite(self):
-        self.login()
-        response = self.client.post(self.FAVORITE_URL)
-        self.assert_201_created(response)
-        expected = RETRIEVE_EXPECTED['article'].copy()
-        expected['favorited'] = True
-        expected['favoritesCount'] = 1
-        self.check_item(
-            parse_body(response)['article'],
-            expected
-        )
-
-    def test_article_favorite_without_login(self):
-        response = self.client.post(self.FAVORITE_URL)
-        self.assert_403_FORBIDDEN(response)
-
-    def test_wrong_article_favorite(self):
-        self.login()
-        response = self.client.post(ARTICLE_URL + '/-wrong/favorite/')
-        self.assert_404_NOT_FOUND(response)
-
-    def test_article_unfavorite(self):
-        self.login()
-        response = self.client.post(self.FAVORITE_URL)
-        self.assert_201_created(response)
-
-        response = self.client.delete(self.FAVORITE_URL)
-        self.assert_200_OK(response)
-        expected = RETRIEVE_EXPECTED['article'].copy()
-        self.check_item(
-            parse_body(response)['article'],
-            expected
-        )
 
     def test_article_feed_url(self):
         self.check_url(

@@ -59,14 +59,13 @@ class UserRetrieveUpdateAPIView(RetrieveUpdateAPIView):
 
         def get(field_name, obj):
             return user_data.get(field_name, getattr(obj, field_name))
-        serializer_data = {
-            'username': get('username', user),
-            'email': get('email', user),
-            'profile': {
-                'bio': get('bio', profile),
-                'image': get('image', profile)
-            }
-        }
+
+        def get_data(field_list, obj):
+            return {key: get(key, obj) for key in field_list}
+
+        serializer_data = get_data(['username', 'email', 'password'], user)
+        serializer_data['profile'] = get_data(['bio', 'image'], profile)
+
         serializer = self.serializer_class(
             user, data=serializer_data, partial=True
         )
