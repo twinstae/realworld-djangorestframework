@@ -1,4 +1,4 @@
-from rest_framework import mixins, viewsets, status, generics, exceptions
+from rest_framework import viewsets, status, generics, exceptions
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
 from rest_framework.response import Response

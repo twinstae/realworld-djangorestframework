@@ -234,7 +234,7 @@ class ArticleTest(TestCaseWithAuth):
         )
 
     def test_retrieve_article_wrong_slug(self):
-        response = self.client.get(self.SLUG_ARTICLE_URL+'abc')
+        response = self.client.get(self.SLUG_ARTICLE_URL + 'abc')
         self.assert_404_NOT_FOUND(response)
 
     def test_tag_list_url(self):

@@ -1,6 +1,4 @@
 from rest_framework import serializers
-from rest_framework.serializers import raise_errors_on_nested_writes
-from rest_framework.utils import model_meta
 
 from realworld.apps.articles.models import Article, Comment, Tag
 from realworld.apps.articles.relations import TagRelatedField

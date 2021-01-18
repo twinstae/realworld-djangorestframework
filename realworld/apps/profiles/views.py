@@ -1,4 +1,4 @@
-from rest_framework import serializers, status
+from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -54,7 +54,6 @@ class ProfileFollowAPIView(ProfileMixIn, APIView):
     def response_after_strategy(
             self, request, username,
             strategy, status_code):
-
         follower = request.user.profile
         followee = self.get_profile_or_404(username)
         if follower.pk is followee.pk:

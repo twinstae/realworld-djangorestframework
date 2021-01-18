@@ -91,7 +91,7 @@ class ProfileTest(TestCaseWithAuth):
         assert parse_body(response)["profile"] == expected
 
     def test_retrieve_wrong_profile(self):
-        response = self.client.get(self.PROFILE_URL[:-3]+'wrong')
+        response = self.client.get(self.PROFILE_URL[:-3] + 'wrong')
         self.assert_404_NOT_FOUND(response)
 
     @staticmethod

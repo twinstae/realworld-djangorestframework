@@ -1,11 +1,9 @@
 from django.contrib.auth import authenticate
 from rest_framework import serializers
-from rest_framework.exceptions import NotFound
 
 from realworld.apps.authentication.models import JwtUser
 from realworld.apps.profiles.serializers import ProfileSerializer
-from realworld.strings import EMAIL_IS_REQUIRED, PASSWORD_IS_REQUIRED, NO_USER_FOUND_WITH_EMAIL_PASSWORD, \
-    USER_HAS_BEEN_DEACTIVATED
+from realworld.strings import NO_USER_FOUND_WITH_EMAIL_PASSWORD
 
 
 class RegistrationSerializer(serializers.ModelSerializer):

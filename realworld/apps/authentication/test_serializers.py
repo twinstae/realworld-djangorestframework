@@ -1,19 +1,18 @@
 import jwt
-from django.contrib.auth import authenticate
 from rest_framework import status
 from rest_framework.test import APITestCase, APIClient
 
 from realworld import settings
 from realworld.apps.authentication.models import JwtUser
-from realworld.apps.authentication.serializers import RegistrationSerializer, LoginSerializer
+from realworld.apps.authentication.serializers import RegistrationSerializer
 from realworld.apps.authentication.test_auth import REGISTER_DATA
 from realworld.testing_util import parse_body
 
 REGISTER_USER_DATA = {
-        'username': "stelo",
-        'email': "rabolution@gmail.com",
-        'password': "test1234"
-    }
+    'username': "stelo",
+    'email': "rabolution@gmail.com",
+    'password': "test1234"
+}
 
 REGISTER_URL = '/api/users/'
 

@@ -1,9 +1,8 @@
 from typing import Union, Tuple
 
 import jwt
-from jwt import PyJWTError
-
 from django.conf import settings
+from jwt import PyJWTError
 from rest_framework import authentication, exceptions
 
 from .models import JwtUser

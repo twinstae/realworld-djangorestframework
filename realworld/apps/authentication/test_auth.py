@@ -1,13 +1,9 @@
 import pytest
 from django.contrib.auth import authenticate
-from django.contrib.auth.backends import ModelBackend
-from rest_framework import status
-from rest_framework.test import APIClient, APIRequestFactory
 
 from realworld.apps.authentication.models import UserManager, JwtUser
 from realworld.apps.authentication.views import RegistrationAPIView, UserRetrieveUpdateAPIView, LoginAPIView
-from realworld.strings import PASSWORD_IS_REQUIRED, EMAIL_IS_REQUIRED, NO_USER_FOUND_WITH_EMAIL_PASSWORD, \
-    USER_HAS_BEEN_DEACTIVATED
+from realworld.strings import NO_USER_FOUND_WITH_EMAIL_PASSWORD
 from realworld.testing_util import TestCaseWithAuth, parse_body, REGISTER_DATA, REGISTER_URL, REGISTER_DATA_2
 
 UPDATE_DATA = {
@@ -23,7 +19,7 @@ UPDATE_DATA = {
 class AuthDangerousTest(TestCaseWithAuth):
     def setUp(self) -> None:
         self.user_1 = self.create_get_user(REGISTER_DATA)
-        self.UPDATE_URL = REGISTER_URL+f'{self.user_1.pk}/'
+        self.UPDATE_URL = REGISTER_URL + f'{self.user_1.pk}/'
         self.LOGIN_URL = REGISTER_URL + 'login/'
         self.user_manager = UserManager()
 
@@ -222,4 +218,3 @@ class AuthTest(TestCaseWithAuth):
             parse_body(response)['user'],
             expected
         )
-

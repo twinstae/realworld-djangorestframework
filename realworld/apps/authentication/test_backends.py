@@ -1,7 +1,5 @@
 from datetime import datetime
 
-from rest_framework.test import APITestCase, APIClient, APIRequestFactory
-
 from realworld.apps.authentication.models import JwtUser
 from realworld.apps.authentication.renderers import JwtUserJSONRenderer
 
@@ -13,7 +11,7 @@ user = JwtUser(
 )
 renderer = JwtUserJSONRenderer()
 EXPECTED_JSON = '{"user": {"username": "stelo", "email": "twinstae@gmail.com", "token": ' \
-+ '"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6bnVsbC"}}'
+                + '"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6bnVsbC"}}'
 
 
 def test_json_renderer():

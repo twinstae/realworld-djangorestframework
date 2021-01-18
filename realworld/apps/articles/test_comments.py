@@ -1,5 +1,3 @@
-from rest_framework import status
-
 from realworld.apps.articles.models import Comment
 from realworld.apps.articles.test_articles import ARTICLE_URL
 from realworld.apps.articles.views import CommentsListCreateAPIView, CommentsDestroyAPIView
@@ -23,7 +21,7 @@ class CommentTest(TestCaseWithAuth):
         cls.COMMENT_URL = cls.SLUG_ARTICLE_URL + '/comments/'
         cls.comment_1 = cls.create_comment(cls.profile_1, cls.article_1, "바디")
         cls.comment_2 = cls.create_comment(cls.profile_2, cls.article_1, "내용1")
-        cls.DELETE_COMMENT_URL = cls.COMMENT_URL+'1/'
+        cls.DELETE_COMMENT_URL = cls.COMMENT_URL + '1/'
         cls.LIST_EXPECTED = [{'body': cls.comment_2.body}, {'body': cls.comment_1.body}]
 
     @staticmethod
@@ -140,7 +138,7 @@ class CommentTest(TestCaseWithAuth):
 
     def test_delete_others_comment(self):
         self.login()
-        response = self.client.delete(self.COMMENT_URL+'2/')
+        response = self.client.delete(self.COMMENT_URL + '2/')
         self.assert_403_FORBIDDEN(response)
 
     def test_delete_comment_without_login(self):
@@ -149,7 +147,7 @@ class CommentTest(TestCaseWithAuth):
 
     def test_delete_comment_wrong_id(self):
         self.login()
-        response = self.client.delete(self.DELETE_COMMENT_URL[:-1]+'566/')
+        response = self.client.delete(self.DELETE_COMMENT_URL[:-1] + '566/')
         self.assert_404_NOT_FOUND(response)
 
     def test_model_str(self):
