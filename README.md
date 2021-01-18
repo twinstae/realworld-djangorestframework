@@ -2,7 +2,7 @@
 
 DjangoRestFramework로 realword spec RestApi 구현
 ## 1. Crud와 relation 구현
-- Artcile
+- Article
   - author -> JwtUser, N:1 Foreign Key
   - tags -> Tag, N:N, ManyToManyField
 - Comment
