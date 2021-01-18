@@ -6,12 +6,10 @@ from drf_yasg import openapi
 
 schema_view = get_schema_view(
    openapi.Info(
-      title="Snippets API",
+      title="Real World API by DRF",
       default_version='v1',
-      description="Test description",
-      terms_of_service="https://www.google.com/policies/terms/",
-      contact=openapi.Contact(email="contact@snippets.local"),
-      license=openapi.License(name="BSD License"),
+      description="Real World api spec 에 따라 제작한 Django Rest Framework 구현",
+      contact=openapi.Contact(email="rabolution@gmail.com"),
    ),
    public=True,
    permission_classes=(permissions.AllowAny,),
